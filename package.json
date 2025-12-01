@@ -1,5 +1,5 @@
 {
-  "name": "lens-vault-website",
+  "name": "lens-vault",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -9,8 +9,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "ethers": "^6.15.0",
     "react": "^19.2.0",
-    "react-dom": "^19.2.0"
+    "react-dom": "^19.2.0",
+    "react-paystack": "^6.0.0"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
