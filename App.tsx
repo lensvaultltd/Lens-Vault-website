@@ -720,32 +720,33 @@ const PricingPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
         description: string;
         setupCost: string;
         retainer: string;
-        amount: number; // Amount in Kobo for Paystack
+        setupAmount: number; // Amount in Kobo
+        retainerAmount: number; // Amount in Kobo
         icon: React.ReactNode;
     };
 
     const plans: Plan[] = [
-        { name: "Individual", description: "For Individuals", setupCost: "₦150,000", retainer: "₦65,000", amount: 15000000, icon: <ShieldCheckIcon className="w-8 h-8" /> },
-        { name: "Influencer", description: "For Social Media Professionals", setupCost: "₦200,000", retainer: "₦85,000", amount: 20000000, icon: <StarIcon className="w-8 h-8" /> },
-        { name: "Brand", description: "For Growing Brands", setupCost: "₦300,000", retainer: "₦120,000", amount: 30000000, icon: <BriefcaseIcon className="w-8 h-8" /> },
-        { name: "Family", description: "For Households", setupCost: "₦450,000", retainer: "₦160,000", amount: 45000000, icon: <UserGroupIcon className="w-8 h-8" /> },
-        { name: "Team / SME", description: "For Small to Medium Enterprises", setupCost: "₦800,000", retainer: "₦380,000", amount: 80000000, icon: <BriefcaseIcon className="w-8 h-8" /> },
-        { name: "VIP", description: "For High-Profile Clients", setupCost: "₦300,000", retainer: "₦180,000", amount: 30000000, icon: <CrownIcon className="w-8 h-8" /> },
+        { name: "Individual", description: "For Individuals", setupCost: "₦150,000", retainer: "₦65,000", setupAmount: 15000000, retainerAmount: 6500000, icon: <ShieldCheckIcon className="w-8 h-8" /> },
+        { name: "Influencer", description: "For Social Media Professionals", setupCost: "₦200,000", retainer: "₦85,000", setupAmount: 20000000, retainerAmount: 8500000, icon: <StarIcon className="w-8 h-8" /> },
+        { name: "Brand", description: "For Growing Brands", setupCost: "₦300,000", retainer: "₦120,000", setupAmount: 30000000, retainerAmount: 12000000, icon: <BriefcaseIcon className="w-8 h-8" /> },
+        { name: "Family", description: "For Households", setupCost: "₦450,000", retainer: "₦160,000", setupAmount: 45000000, retainerAmount: 16000000, icon: <UserGroupIcon className="w-8 h-8" /> },
+        { name: "Team / SME", description: "For Small to Medium Enterprises", setupCost: "₦800,000", retainer: "₦380,000", setupAmount: 80000000, retainerAmount: 38000000, icon: <BriefcaseIcon className="w-8 h-8" /> },
+        { name: "VIP", description: "For High-Profile Clients", setupCost: "₦300,000", retainer: "₦180,000", setupAmount: 30000000, retainerAmount: 18000000, icon: <CrownIcon className="w-8 h-8" /> },
     ];
 
-    const PaystackHookButton = ({ plan }: { plan: Plan }) => {
+    const PaystackHookButton = ({ plan, amount, label, className }: { plan: Plan, amount: number, label: string, className?: string }) => {
         const config = {
             reference: (new Date()).getTime().toString(),
             email: user?.email || "customer@example.com",
-            amount: plan.amount, // Amount is in kobo
+            amount: amount, // Amount is in kobo
             publicKey: 'pk_live_1efccc2535b9269d6737dd0557277d25e1e37a92', // Live Key provided by user
         };
 
         const initializePayment = usePaystackPayment(config);
 
         const onSuccess = (reference: any) => {
-            updateUserPlan(plan.name);
-            alert(`Payment successful! You are now subscribed to the ${plan.name} plan.`);
+            updateUserPlan(`${plan.name} (${label})`);
+            alert(`Payment successful! You have paid for: ${plan.name} - ${label}.`);
         };
 
         const onClose = () => {
@@ -760,8 +761,8 @@ const PricingPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
                     return;
                 }
                 initializePayment({ onSuccess, onClose });
-            }} className="w-full font-semibold px-6 py-3 rounded-md text-white bg-gray-900 hover:bg-gray-800 transition-colors">
-                Select Plan
+            }} className={`w-full font-semibold px-4 py-2 rounded-md transition-colors ${className}`}>
+                {label}
             </button>
         );
     };
@@ -808,8 +809,21 @@ const PricingPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
                                 </div>
 
                                 <div className="mt-8 space-y-3">
-                                    <PaystackHookButton plan={plan} />
-                                    <button onClick={() => handleSelectPlan(plan)} className="text-sm text-gray-500 hover:text-gray-700 underline">
+                                    <div className="grid grid-cols-1 gap-3">
+                                        <PaystackHookButton
+                                            plan={plan}
+                                            amount={plan.setupAmount}
+                                            label={`Pay Setup (${plan.setupCost})`}
+                                            className="text-white bg-gray-900 hover:bg-gray-800"
+                                        />
+                                        <PaystackHookButton
+                                            plan={plan}
+                                            amount={plan.retainerAmount}
+                                            label={`Pay Retainer (${plan.retainer})`}
+                                            className="text-gray-900 bg-gray-200 hover:bg-gray-300"
+                                        />
+                                    </div>
+                                    <button onClick={() => handleSelectPlan(plan)} className="text-sm text-gray-500 hover:text-gray-700 underline block w-full text-center mt-2">
                                         Contact via WhatsApp
                                     </button>
                                 </div>
@@ -819,7 +833,7 @@ const PricingPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
                 </div>
 
             </div>
-        </section>
+        </section >
     );
 };
 
