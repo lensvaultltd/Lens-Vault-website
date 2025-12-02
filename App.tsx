@@ -390,10 +390,10 @@ const Header: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigate }
     };
 
     return (
-        <header className="fixed top-0 left-0 right-0 z-50 text-white transition-all duration-300 py-6">
-            <div className="container mx-auto flex items-center justify-between px-6">
-                <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('main'); }} className="flex items-center gap-2 text-2xl font-bold text-white tracking-wide">
-                    <LogoIcon className="h-10 w-auto" />
+        <header className="fixed top-0 left-0 right-0 z-50 text-white transition-all duration-300 py-4 md:py-6">
+            <div className="container mx-auto flex items-center justify-between px-4 md:px-6">
+                <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('main'); }} className="flex items-center gap-2 text-xl md:text-2xl font-bold text-white tracking-wide z-50 relative">
+                    <LogoIcon className="h-8 md:h-10 w-auto" />
                     Lens Vault
                 </a>
 
@@ -418,20 +418,18 @@ const Header: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigate }
                 </nav>
 
                 {/* Mobile Menu Button */}
-                <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden p-2 text-white hover:text-gray-200 focus:outline-none">
+                <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden p-2 text-white hover:text-gray-200 focus:outline-none z-50 relative">
                     {isMenuOpen ? <XIcon className="w-8 h-8" /> : <MenuIcon className="w-8 h-8" />}
                 </button>
             </div>
 
             {/* Mobile Menu Overlay */}
-            {isMenuOpen && (
-                <div className="md:hidden absolute top-full left-0 right-0 glass-card m-4 p-6 flex flex-col space-y-4 animate-fade-in text-white z-50">
-                    <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('main'); }} className="text-lg font-medium hover:text-forest-accent">Home</a>
-                    <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('services'); }} className="text-lg font-medium hover:text-forest-accent">Services</a>
-                    <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('pricing'); }} className="text-lg font-medium hover:text-forest-accent">Pricing</a>
-                    <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('contact'); }} className="text-lg font-medium hover:text-forest-accent">Contact</a>
-                </div>
-            )}
+            <div className={`fixed inset-0 bg-forest-900/95 backdrop-blur-xl z-40 flex flex-col items-center justify-center space-y-8 transition-all duration-300 ${isMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
+                <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('main'); }} className="text-3xl font-bold text-white hover:text-forest-accent transition-colors">Home</a>
+                <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('services'); }} className="text-3xl font-bold text-white hover:text-forest-accent transition-colors">Services</a>
+                <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('pricing'); }} className="text-3xl font-bold text-white hover:text-forest-accent transition-colors">Pricing</a>
+                <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('contact'); }} className="text-3xl font-bold text-white hover:text-forest-accent transition-colors">Contact</a>
+            </div>
         </header>
     );
 };
@@ -521,7 +519,7 @@ interface ServiceCardProps {
 }
 
 const ServiceCard: React.FC<ServiceCardProps> = ({ icon, title, description, onNavigate }) => (
-    <div className="glass-card p-8 h-full flex flex-col items-start text-left hover:transform hover:-translate-y-2 transition-all duration-300 group">
+    <div className="glass-card p-6 md:p-8 h-full flex flex-col items-start text-left hover:transform hover:-translate-y-2 transition-all duration-300 group">
         <div className="p-4 bg-forest-800 text-forest-accent rounded-full mb-6 shadow-inner group-hover:bg-forest-accent group-hover:text-forest-900 transition-colors">
             {icon}
         </div>
@@ -598,7 +596,7 @@ const HeroSection: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
                 {/* Right Login Card */}
                 <div className="flex justify-center lg:justify-end">
                     {user ? (
-                        <div className="glass-card p-10 w-full max-w-md text-center border border-forest-700/50">
+                        <div className="glass-card p-6 md:p-10 w-full max-w-md text-center border border-forest-700/50">
                             <div className="w-20 h-20 bg-forest-800 rounded-full mx-auto mb-6 flex items-center justify-center border border-forest-700">
                                 <UserIcon className="w-10 h-10 text-forest-accent" />
                             </div>
@@ -778,7 +776,7 @@ const WhyChooseUsSection: React.FC = () => (
 
 
 const Testimonial: React.FC<{ quote: string; author: string; role: string; }> = ({ quote, author, role }) => (
-    <div className="glass-card p-8 text-center h-full flex flex-col justify-center border border-forest-700/30">
+    <div className="glass-card p-6 md:p-8 text-center h-full flex flex-col justify-center border border-forest-700/30">
         <div className="text-yellow-400 flex justify-center gap-1 mb-4">
             {[...Array(5)].map((_, i) => <StarIcon key={i} className="w-5 h-5 fill-current" />)}
         </div>
@@ -937,7 +935,7 @@ const ServicesPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavi
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                         {coreServices.map((service, index) => (
                             <AnimatedSection key={index}>
-                                <div className="glass-card p-8 h-full group hover:bg-forest-800/50 transition-colors">
+                                <div className="glass-card p-6 md:p-8 h-full group hover:bg-forest-800/50 transition-colors">
                                     <div className="flex justify-center mb-6">
                                         <div className="p-4 bg-forest-800 text-forest-accent rounded-full shadow-inner group-hover:bg-forest-accent group-hover:text-forest-900 transition-colors">
                                             {service.icon}
@@ -960,7 +958,7 @@ const ServicesPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavi
                     <div className="space-y-8">
                         {packages.map((pkg, index) => (
                             <AnimatedSection key={index}>
-                                <div className="glass-card p-8 flex flex-col md:flex-row items-center gap-8 border border-forest-700/30">
+                                <div className="glass-card p-6 md:p-8 flex flex-col md:flex-row items-center gap-8 border border-forest-700/30">
                                     <div className="p-4 bg-forest-800 text-forest-accent rounded-full flex-shrink-0 shadow-inner">
                                         {pkg.icon}
                                     </div>
@@ -982,7 +980,7 @@ const ServicesPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavi
 
                 {/* Additional Services */}
                 <AnimatedSection className="mt-20">
-                    <div className="glass-card p-10 text-center border border-forest-700/50">
+                    <div className="glass-card p-6 md:p-10 text-center border border-forest-700/50">
                         <h2 className="text-3xl font-bold text-white mb-6">Additional Services</h2>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
                             <div>
@@ -1192,7 +1190,7 @@ const PricingPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {plans.map((plan, index) => (
                         <AnimatedSection key={index}>
-                            <div className={`glass-card p-8 flex flex-col h-full transition-all duration-300 border relative group ${plan.popular ? 'border-forest-accent shadow-[0_0_30px_rgba(14,165,233,0.15)] scale-105 z-10' : 'border-forest-700/30 hover:border-forest-500/50'}`}>
+                            <div className={`glass-card p-6 md:p-8 flex flex-col h-full transition-all duration-300 border relative group ${plan.popular ? 'border-forest-accent shadow-[0_0_30px_rgba(14,165,233,0.15)] scale-105 z-10' : 'border-forest-700/30 hover:border-forest-500/50'}`}>
                                 {plan.popular && (
                                     <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-forest-accent text-forest-900 text-xs font-bold px-4 py-1 rounded-full uppercase tracking-wider shadow-lg">
                                         Most Popular
@@ -1321,7 +1319,7 @@ const ContactPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
                         </div>
                     </AnimatedSection>
                     <AnimatedSection>
-                        <div className="glass-card p-8 border border-forest-700/30">
+                        <div className="glass-card p-6 md:p-8 border border-forest-700/30">
                             <form onSubmit={handleSubmit} className="space-y-6">
                                 <div>
                                     <label htmlFor="name" className="block text-sm font-medium text-forest-200">Full Name</label>
@@ -1416,7 +1414,7 @@ const LoginPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigat
                 <BackButton onClick={() => onNavigate('main')} />
                 <div className="max-w-md mx-auto">
                     <AnimatedSection>
-                        <div className="glass-card p-10 relative">
+                        <div className="glass-card p-6 md:p-10 relative">
                             {/* Close button */}
                             <button
                                 onClick={() => onNavigate('main')}
@@ -1536,7 +1534,7 @@ const SignupPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNaviga
                 <BackButton onClick={() => onNavigate('main')} />
                 <div className="max-w-md mx-auto">
                     <AnimatedSection>
-                        <div className="glass-card p-8">
+                        <div className="glass-card p-6 md:p-8">
                             <div className="text-center mb-8">
                                 <h1 className="text-3xl font-extrabold text-gray-900">Create Account</h1>
                                 <p className="mt-2 text-gray-600">Join Lens Vault and secure your digital life.</p>
