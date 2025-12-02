@@ -839,10 +839,30 @@ const CallToActionSection: React.FC<{ onNavigate: (page: string) => void }> = ({
     </section>
 );
 
+const TrustedCollaboratorsSection: React.FC = () => (
+    <section className="py-12 border-y border-white/5 bg-white/5">
+        <div className="container mx-auto px-6">
+            <p className="text-center text-forest-300 mb-8 uppercase tracking-widest text-sm font-semibold">Trusted Collaborators & Partners</p>
+            <div className="flex flex-wrap justify-center items-center gap-12 md:gap-20 opacity-80 hover:opacity-100 transition-opacity duration-300">
+                <a href="https://www.orivonedge.dev/" target="_blank" rel="noopener noreferrer" className="group flex flex-col items-center gap-3 transition-transform hover:scale-105">
+                    <img src="/assets/orivon.png" alt="OrivonEdge" className="h-12 md:h-16 w-auto object-contain brightness-0 invert group-hover:brightness-100 group-hover:invert-0 transition-all duration-300" />
+                </a>
+                <a href="https://www.instagram.com/thesavwomen/" target="_blank" rel="noopener noreferrer" className="group flex flex-col items-center gap-3 transition-transform hover:scale-105">
+                    <img src="/assets/savwomen.png" alt="The Savwomen" className="h-12 md:h-16 w-auto object-contain" />
+                </a>
+                <a href="https://www.linkedin.com/company/honoris-collective-lab-nile-university-of-nigeria?originalSubdomain=ng" target="_blank" rel="noopener noreferrer" className="group flex flex-col items-center gap-3 transition-transform hover:scale-105">
+                    <img src="/assets/nile.png" alt="Nile Collective Lab" className="h-12 md:h-16 w-auto object-contain bg-white/10 rounded-lg p-1" />
+                </a>
+            </div>
+        </div>
+    </section>
+);
+
 const MainPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigate }) => {
     return (
         <>
             <HeroSection onNavigate={onNavigate} />
+            <TrustedCollaboratorsSection />
             <ServicesSection onNavigate={onNavigate} />
             <WhyChooseUsSection />
             <TestimonialsSection />

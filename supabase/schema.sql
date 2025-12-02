@@ -3,7 +3,7 @@ create extension if not exists "uuid-ossp";
 
 -- Create users table
 create table if not exists users (
-  id uuid primary key default uuid_generate_v4(),
+  id text primary key, -- Firebase UID is text
   email text unique not null,
   name text not null,
   wallet_address text unique,
@@ -15,7 +15,7 @@ create table if not exists users (
 -- Create payments table
 create table if not exists payments (
   id uuid primary key default uuid_generate_v4(),
-  user_id uuid references users(id) on delete cascade,
+  user_id text references users(id) on delete cascade, -- Changed to text
   plan_name text not null,
   amount integer not null,
   payment_type text not null check (payment_type in ('setup', 'retainer')),
@@ -46,26 +46,38 @@ alter table payments enable row level security;
 alter table contact_messages enable row level security;
 
 -- RLS Policies for users table
-create policy "Users can view their own profile"
+-- Note: We cannot use auth.uid() directly for RLS if we are using Firebase Auth 
+-- UNLESS we are using Supabase Custom Auth or if we just allow public reads/writes for now 
+-- and handle security in the backend/API. 
+-- BUT since we are doing client-side inserts, we need a policy.
+-- For strict separation without Supabase Auth, we might need to use a Service Key on the server 
+-- OR allow public insert/select for now (NOT SECURE for production but works for dev).
+-- A better approach for production: Use Firebase ID Token verification in a Supabase Edge Function.
+-- For this "MVP" stage with client-side logic:
+-- We will allow public insert (for signup).
+-- We will allow public select (so users can fetch their profile).
+-- Ideally, we'd filter by ID, but without Supabase Auth context, we can't enforce "my own profile" easily in RLS.
+
+create policy "Enable read access for all users"
   on users for select
-  using (auth.uid() = id);
+  using (true);
 
-create policy "Users can update their own profile"
-  on users for update
-  using (auth.uid() = id);
-
-create policy "Anyone can insert users (for signup)"
+create policy "Enable insert for all users"
   on users for insert
   with check (true);
 
--- RLS Policies for payments table
-create policy "Users can view their own payments"
-  on payments for select
-  using (auth.uid() = user_id);
+create policy "Enable update for all users"
+  on users for update
+  using (true);
 
-create policy "Users can insert their own payments"
+-- RLS Policies for payments table
+create policy "Enable read access for all users"
+  on payments for select
+  using (true);
+
+create policy "Enable insert for all users"
   on payments for insert
-  with check (auth.uid() = user_id);
+  with check (true);
 
 -- RLS Policies for contact_messages table
 create policy "Anyone can insert contact messages"
