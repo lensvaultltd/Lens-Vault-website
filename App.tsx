@@ -3,6 +3,11 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { ethers } from 'ethers';
 import { usePaystackPayment } from 'react-paystack';
+import * as authService from './src/services/authService';
+import * as dbService from './src/services/databaseService';
+import { SocialLogin } from './src/components/SocialLogin';
+import AnimatedBackground from './src/components/AnimatedBackground';
+import type { User } from './src/types/database.types';
 
 declare global {
     interface Window {
@@ -46,22 +51,27 @@ const CrownIcon: React.FC<{ className?: string }> = ({ className }) => (
     </svg>
 );
 
-
-const EnvelopeIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-    </svg>
-);
-
 const LockClosedIcon: React.FC<{ className?: string }> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
     </svg>
 );
 
+const DocumentTextIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+    </svg>
+);
+
 const UserIcon: React.FC<{ className?: string }> = ({ className }) => (
     <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
         <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+    </svg>
+);
+
+const EnvelopeIcon: React.FC<{ className?: string }> = ({ className }) => (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
     </svg>
 );
 
@@ -170,6 +180,11 @@ const BackButton: React.FC<{ onClick: () => void }> = ({ onClick }) => (
 const WalletConnect: React.FC<{ onConnect: (address: string) => void }> = ({ onConnect }) => {
     const [account, setAccount] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [isMetaMaskInstalled, setIsMetaMaskInstalled] = useState<boolean>(true);
+
+    useEffect(() => {
+        setIsMetaMaskInstalled(typeof window !== 'undefined' && !!window.ethereum);
+    }, []);
 
     const connectWallet = async () => {
         if (window.ethereum) {
@@ -183,20 +198,32 @@ const WalletConnect: React.FC<{ onConnect: (address: string) => void }> = ({ onC
                 setError(err.message || "Failed to connect wallet.");
             }
         } else {
-            setError("MetaMask is not installed. Please install it to use this feature.");
+            setIsMetaMaskInstalled(false);
         }
     };
 
     return (
         <div className="flex flex-col items-center gap-3">
             {!account ? (
-                <button
-                    onClick={connectWallet}
-                    className="flex items-center gap-2 px-6 py-3 bg-orange-600 text-white font-bold rounded-lg hover:bg-orange-700 transition-colors shadow-md"
-                >
-                    <ShieldCheckIcon className="w-6 h-6" />
-                    Connect Wallet to Login
-                </button>
+                isMetaMaskInstalled ? (
+                    <button
+                        onClick={connectWallet}
+                        className="flex items-center gap-2 px-6 py-3 bg-orange-600 text-white font-bold rounded-lg hover:bg-orange-700 transition-colors shadow-md"
+                    >
+                        <ShieldCheckIcon className="w-6 h-6" />
+                        Connect Wallet to Login
+                    </button>
+                ) : (
+                    <a
+                        href="https://metamask.io/download/"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors shadow-md"
+                    >
+                        <ShieldExclamationIcon className="w-6 h-6" />
+                        Install MetaMask to Login
+                    </a>
+                )
             ) : (
                 <div className="flex flex-col items-center gap-2 animate-fade-in">
                     <div className="flex items-center gap-2 px-4 py-2 bg-green-100 text-green-800 rounded-full border border-green-200">
@@ -218,69 +245,128 @@ const WalletConnect: React.FC<{ onConnect: (address: string) => void }> = ({ onC
 
 
 // --- Auth Context ---
-interface User {
-    email: string;
-    name: string;
-    plan?: string;
-    walletAddress?: string;
-}
-
 interface AuthContextType {
     user: User | null;
-    login: (user: User) => void;
-    logout: () => void;
-    signup: (user: User, password: string) => boolean;
-    updateUserPlan: (plan: string) => void;
+    loading: boolean;
+    login: (email: string, password: string) => Promise<boolean>;
+    signup: (email: string, password: string, name: string) => Promise<boolean>;
+    loginWithWallet: (walletAddress: string) => Promise<boolean>;
+    logout: () => Promise<void>;
+    updateUserPlan: (plan: string) => Promise<void>;
+    error: string | null;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [error, setError] = useState<string | null>(null);
 
+    // Check for existing session on mount
     useEffect(() => {
-        const storedUser = localStorage.getItem('currentUser');
-        if (storedUser) {
-            setUser(JSON.parse(storedUser));
-        }
+        const checkSession = async () => {
+            try {
+                const currentUser = await authService.getCurrentUser();
+                if (currentUser) {
+                    setUser(currentUser);
+                }
+            } catch (err) {
+                console.error('Session check error:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        checkSession();
     }, []);
 
-    const login = (userData: User) => {
-        setUser(userData);
-        localStorage.setItem('currentUser', JSON.stringify(userData));
-    };
-
-    const logout = () => {
-        setUser(null);
-        localStorage.removeItem('currentUser');
-    };
-
-    const signup = (userData: User, password: string) => {
-        const users = JSON.parse(localStorage.getItem('users') || '[]');
-        if (users.find((u: any) => u.email === userData.email)) {
-            return false; // User exists
+    const login = async (email: string, password: string): Promise<boolean> => {
+        setError(null);
+        setLoading(true);
+        try {
+            const result = await authService.signInWithEmail(email, password);
+            if (result.success && result.user) {
+                setUser(result.user);
+                return true;
+            } else {
+                setError(result.error || 'Login failed');
+                return false;
+            }
+        } catch (err: any) {
+            setError(err.message || 'Login failed');
+            return false;
+        } finally {
+            setLoading(false);
         }
-        users.push({ ...userData, password });
-        localStorage.setItem('users', JSON.stringify(users));
-        login(userData);
-        return true;
     };
 
-    const updateUserPlan = (plan: string) => {
-        if (user) {
-            const updatedUser = { ...user, plan };
-            setUser(updatedUser);
-            localStorage.setItem('currentUser', JSON.stringify(updatedUser));
+    const signup = async (email: string, password: string, name: string): Promise<boolean> => {
+        setError(null);
+        setLoading(true);
+        try {
+            const result = await authService.signUpWithEmail(email, password, name);
+            if (result.success && result.user) {
+                setUser(result.user);
+                return true;
+            } else {
+                setError(result.error || 'Signup failed');
+                return false;
+            }
+        } catch (err: any) {
+            setError(err.message || 'Signup failed');
+            return false;
+        } finally {
+            setLoading(false);
+        }
+    };
 
-            // Update in users array as well
-            const users = JSON.parse(localStorage.getItem('users') || '[]');
-            const updatedUsers = users.map((u: any) => u.email === user.email ? { ...u, plan } : u);
-            localStorage.setItem('users', JSON.stringify(updatedUsers));
+    const loginWithWallet = async (walletAddress: string): Promise<boolean> => {
+        setError(null);
+        setLoading(true);
+        try {
+            const result = await authService.signInWithWallet(walletAddress);
+            if (result.success && result.user) {
+                setUser(result.user);
+                return true;
+            } else {
+                setError(result.error || 'Wallet login failed');
+                return false;
+            }
+        } catch (err: any) {
+            setError(err.message || 'Wallet login failed');
+            return false;
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const logout = async (): Promise<void> => {
+        setLoading(true);
+        try {
+            await authService.signOut();
+            setUser(null);
+        } catch (err) {
+            console.error('Logout error:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const updateUserPlan = async (plan: string): Promise<void> => {
+        if (user) {
+            try {
+                const success = await dbService.updateUserPlan(user.id, plan);
+                if (success) {
+                    setUser({ ...user, plan });
+                }
+            } catch (err) {
+                console.error('Update plan error:', err);
+            }
         }
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, signup, updateUserPlan }}>
+        <AuthContext.Provider value={{ user, loading, login, signup, loginWithWallet, logout, updateUserPlan, error }}>
             {children}
         </AuthContext.Provider>
     );
@@ -304,66 +390,46 @@ const Header: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigate }
     };
 
     return (
-        <header className="absolute top-0 left-0 right-0 z-20 text-gray-800 bg-white/90 backdrop-blur-md md:bg-transparent md:backdrop-blur-none shadow-sm md:shadow-none">
-            <div className="container mx-auto flex items-center justify-between p-4 md:p-6">
-                <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('main'); }} className="flex items-center gap-3 text-xl font-bold text-gray-900 hover:text-gray-700 transition">
-                    <LogoIcon className="h-10 w-auto md:h-14" />
+        <header className="fixed top-0 left-0 right-0 z-50 text-white transition-all duration-300 py-6">
+            <div className="container mx-auto flex items-center justify-between px-6">
+                <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('main'); }} className="flex items-center gap-2 text-2xl font-bold text-white tracking-wide">
+                    <LogoIcon className="h-10 w-auto" />
+                    Lens Vault
                 </a>
 
                 {/* Desktop Nav */}
-                <nav className="hidden md:flex items-center gap-6 text-gray-600">
-                    <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('services'); }} className="hover:text-gray-900 transition-colors">Services</a>
-                    <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('pricing'); }} className="hover:text-gray-900 transition-colors">Pricing</a>
-                    <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('contact'); }} className="hover:text-gray-900 transition-colors">Contact</a>
+                <nav className="hidden md:flex items-center gap-10 text-white/90 font-medium text-lg">
+                    <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('main'); }} className="hover:text-forest-accent transition-colors relative group">
+                        Home
+                        <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-forest-accent transition-all group-hover:w-full"></span>
+                    </a>
+                    <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('services'); }} className="hover:text-forest-accent transition-colors relative group">
+                        Services
+                        <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-forest-accent transition-all group-hover:w-full"></span>
+                    </a>
+                    <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('pricing'); }} className="hover:text-forest-accent transition-colors relative group">
+                        Pricing
+                        <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-forest-accent transition-all group-hover:w-full"></span>
+                    </a>
+                    <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('contact'); }} className="hover:text-forest-accent transition-colors relative group">
+                        Contact
+                        <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-forest-accent transition-all group-hover:w-full"></span>
+                    </a>
                 </nav>
 
-                {/* Desktop Auth */}
-                <div className="hidden md:flex items-center gap-4">
-                    {user ? (
-                        <div className="flex items-center gap-4">
-                            <span className="font-semibold text-gray-900">Hi, {user.name}</span>
-                            <button onClick={logout} className="text-sm text-red-600 hover:text-red-800 font-semibold">Logout</button>
-                        </div>
-                    ) : (
-                        <>
-                            <button onClick={() => handleNavigate('login')} className="font-semibold px-5 py-2 rounded-md text-gray-900 hover:bg-gray-100 transition-colors">
-                                Login
-                            </button>
-                            <button onClick={() => handleNavigate('signup')} className="font-semibold px-5 py-2 rounded-md text-white bg-gray-900 hover:bg-gray-800 transition-colors">
-                                Sign Up
-                            </button>
-                        </>
-                    )}
-                </div>
-
                 {/* Mobile Menu Button */}
-                <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden p-2 text-gray-600 hover:text-gray-900 focus:outline-none">
+                <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden p-2 text-white hover:text-gray-200 focus:outline-none">
                     {isMenuOpen ? <XIcon className="w-8 h-8" /> : <MenuIcon className="w-8 h-8" />}
                 </button>
             </div>
 
             {/* Mobile Menu Overlay */}
             {isMenuOpen && (
-                <div className="md:hidden absolute top-full left-0 right-0 bg-white border-t border-gray-100 shadow-lg flex flex-col p-6 space-y-4 animate-fade-in">
-                    <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('services'); }} className="text-lg font-medium text-gray-700 hover:text-blue-600">Services</a>
-                    <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('pricing'); }} className="text-lg font-medium text-gray-700 hover:text-blue-600">Pricing</a>
-                    <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('contact'); }} className="text-lg font-medium text-gray-700 hover:text-blue-600">Contact</a>
-                    <hr className="border-gray-200" />
-                    {user ? (
-                        <div className="flex flex-col gap-4">
-                            <span className="font-semibold text-gray-900">Hi, {user.name}</span>
-                            <button onClick={() => { logout(); setIsMenuOpen(false); }} className="text-left text-red-600 hover:text-red-800 font-semibold">Logout</button>
-                        </div>
-                    ) : (
-                        <div className="flex flex-col gap-3">
-                            <button onClick={() => handleNavigate('login')} className="w-full font-semibold px-5 py-3 rounded-md text-gray-900 bg-gray-100 hover:bg-gray-200 transition-colors text-center">
-                                Login
-                            </button>
-                            <button onClick={() => handleNavigate('signup')} className="w-full font-semibold px-5 py-3 rounded-md text-white bg-gray-900 hover:bg-gray-800 transition-colors text-center">
-                                Sign Up
-                            </button>
-                        </div>
-                    )}
+                <div className="md:hidden absolute top-full left-0 right-0 glass-card m-4 p-6 flex flex-col space-y-4 animate-fade-in text-white z-50">
+                    <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('main'); }} className="text-lg font-medium hover:text-forest-accent">Home</a>
+                    <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('services'); }} className="text-lg font-medium hover:text-forest-accent">Services</a>
+                    <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('pricing'); }} className="text-lg font-medium hover:text-forest-accent">Pricing</a>
+                    <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('contact'); }} className="text-lg font-medium hover:text-forest-accent">Contact</a>
                 </div>
             )}
         </header>
@@ -371,33 +437,66 @@ const Header: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigate }
 };
 
 const Footer: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigate }) => (
-    <footer className="text-gray-600 bg-gray-50">
-        <div className="container mx-auto px-6 py-8">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-8">
-                <div className="text-center md:text-left">
-                    <a href="#" onClick={(e) => { e.preventDefault(); onNavigate('main'); }} className="flex items-center justify-center md:justify-start gap-3 text-lg font-bold text-gray-900 hover:text-gray-700 transition mb-2">
-                        <LogoIcon className="h-12 w-auto" />
+    <footer className="text-white bg-forest-900 pt-16 pb-8 border-t border-forest-800">
+        <div className="container mx-auto px-6">
+            <div className="grid md:grid-cols-4 gap-12 mb-12">
+                {/* Brand Column */}
+                <div className="md:col-span-1">
+                    <a href="#" onClick={(e) => { e.preventDefault(); onNavigate('main'); }} className="flex items-center gap-2 text-2xl font-bold text-white mb-4">
+                        <LogoIcon className="h-8 w-auto" />
+                        Lens Vault
                     </a>
-                    <p className="text-sm">The Digital Peace of Mind You Need.</p>
+                    <p className="text-forest-300 text-sm leading-relaxed">
+                        The Digital Peace of Mind You Need. Protecting your digital life with proof-backed security.
+                    </p>
                 </div>
-                <div className="text-center md:text-left">
-                    <p className="font-semibold text-gray-900 mb-2">Connect with Us</p>
-                    <div className="flex justify-center md:justify-start items-center gap-4">
-                        <a href="https://wa.me/2349068845666" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-gray-900 transition-colors"><span className="sr-only">WhatsApp</span><WhatsAppIcon className="w-6 h-6" /></a>
-                        <a href="https://instagram.com/lensvaultltd" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-gray-900 transition-colors"><span className="sr-only">Instagram</span><InstagramIcon className="w-6 h-6" /></a>
-                        <a href="https://twitter.com/LensVaultltd" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-gray-900 transition-colors"><span className="sr-only">Twitter</span><TwitterIcon className="w-6 h-6" /></a>
-                        <a href="https://www.linkedin.com/company/lens-vault/" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-gray-900 transition-colors"><span className="sr-only">LinkedIn</span><LinkedInIcon className="w-6 h-6" /></a>
+
+                {/* Links Column 1 */}
+                <div>
+                    <h3 className="text-white font-bold mb-4 uppercase tracking-wider text-sm">Company</h3>
+                    <ul className="space-y-2 text-forest-300">
+                        <li><a href="#" onClick={(e) => { e.preventDefault(); onNavigate('main'); }} className="hover:text-forest-accent transition-colors">Home</a></li>
+                        <li><a href="#" onClick={(e) => { e.preventDefault(); onNavigate('services'); }} className="hover:text-forest-accent transition-colors">Services</a></li>
+                        <li><a href="#" onClick={(e) => { e.preventDefault(); onNavigate('pricing'); }} className="hover:text-forest-accent transition-colors">Pricing</a></li>
+                        <li><a href="#" onClick={(e) => { e.preventDefault(); onNavigate('contact'); }} className="hover:text-forest-accent transition-colors">Contact</a></li>
+                    </ul>
+                </div>
+
+                {/* Links Column 2 */}
+                <div>
+                    <h3 className="text-white font-bold mb-4 uppercase tracking-wider text-sm">Support</h3>
+                    <ul className="space-y-2 text-forest-300">
+                        <li><a href="#" className="hover:text-forest-accent transition-colors">Help Center</a></li>
+                        <li><a href="#" className="hover:text-forest-accent transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" className="hover:text-forest-accent transition-colors">Terms of Service</a></li>
+                        <li><a href="#" className="hover:text-forest-accent transition-colors">FAQ</a></li>
+                    </ul>
+                </div>
+
+                {/* Social Column */}
+                <div>
+                    <h3 className="text-white font-bold mb-4 uppercase tracking-wider text-sm">Connect</h3>
+                    <div className="flex gap-4">
+                        <a href="https://twitter.com/LensVaultltd" target="_blank" rel="noopener noreferrer" className="bg-forest-800 p-2 rounded-full hover:bg-forest-accent hover:text-white transition-all text-forest-300">
+                            <TwitterIcon className="w-5 h-5" />
+                        </a>
+                        <a href="https://instagram.com/lensvaultltd" target="_blank" rel="noopener noreferrer" className="bg-forest-800 p-2 rounded-full hover:bg-forest-accent hover:text-white transition-all text-forest-300">
+                            <InstagramIcon className="w-5 h-5" />
+                        </a>
+                        <a href="https://www.linkedin.com/company/lens-vault/" target="_blank" rel="noopener noreferrer" className="bg-forest-800 p-2 rounded-full hover:bg-forest-accent hover:text-white transition-all text-forest-300">
+                            <LinkedInIcon className="w-5 h-5" />
+                        </a>
                     </div>
-                    <a href="#" onClick={(e) => { e.preventDefault(); onNavigate('contact'); }} className="text-sm mt-3 inline-block text-gray-700 hover:text-gray-900 transition-colors underline">
-                        More ways to get in touch
-                    </a>
-                </div>
-                <div className="text-center md:text-left text-sm">
-                    <a href="#" className="hover:text-gray-900 transition">Legal</a> &bull; <a href="#" className="hover:text-gray-900 transition">Privacy</a> &bull; <a href="#" className="hover:text-gray-900 transition">Terms of Service</a>
                 </div>
             </div>
-            <div className="text-center text-sm text-gray-500 mt-8 pt-8 border-t border-gray-200">
-                &copy; {new Date().getFullYear()} Lens Vault Ltd. All rights reserved.
+
+            <div className="border-t border-forest-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-forest-400">
+                <p>&copy; {new Date().getFullYear()} Lens Vault Ltd. All rights reserved.</p>
+                <div className="flex gap-6">
+                    <a href="#" className="hover:text-white transition-colors">Privacy</a>
+                    <a href="#" className="hover:text-white transition-colors">Terms</a>
+                    <a href="#" className="hover:text-white transition-colors">Cookies</a>
+                </div>
             </div>
         </div>
     </footer>
@@ -422,61 +521,169 @@ interface ServiceCardProps {
 }
 
 const ServiceCard: React.FC<ServiceCardProps> = ({ icon, title, description, onNavigate }) => (
-    <div className="bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 border border-gray-200/80 flex flex-col items-start text-left">
-        <div className="p-3 bg-blue-100 text-blue-600 rounded-full mb-5">
+    <div className="glass-card p-8 h-full flex flex-col items-start text-left hover:transform hover:-translate-y-2 transition-all duration-300 group">
+        <div className="p-4 bg-forest-800 text-forest-accent rounded-full mb-6 shadow-inner group-hover:bg-forest-accent group-hover:text-forest-900 transition-colors">
             {icon}
         </div>
-        <h3 className="text-xl font-bold mb-3 text-gray-900">{title}</h3>
-        <p className="text-gray-600 flex-grow mb-6">{description}</p>
-        <button onClick={() => onNavigate('services')} className="mt-auto font-semibold text-blue-600 hover:text-blue-800 transition-colors">
-            Learn More &rarr;
+        <h3 className="text-2xl font-bold mb-3 text-white">{title}</h3>
+        <p className="text-forest-200 flex-grow mb-6 leading-relaxed">{description}</p>
+        <button onClick={() => onNavigate('services')} className="mt-auto font-bold text-forest-accent hover:text-white transition-colors flex items-center gap-2">
+            Learn More <span className="text-xl">&rarr;</span>
         </button>
     </div>
 );
 
 
 const FeaturePill: React.FC<{ icon: React.ReactNode; text: string }> = ({ icon, text }) => (
-    <div className="flex items-center gap-3 bg-white/80 backdrop-blur-sm p-4 rounded-full shadow-md border border-gray-200/80">
-        <div className="p-2 bg-green-100 text-green-600 rounded-full">
+    <div className="flex items-center gap-3 glass-card p-4 shadow-md border border-forest-700/50">
+        <div className="p-2 bg-forest-800 text-forest-accent rounded-full">
             {icon}
         </div>
-        <span className="font-semibold text-gray-800">{text}</span>
+        <span className="font-semibold text-white">{text}</span>
     </div>
 );
 
 
 // --- Page Components ---
 
-const HeroSection: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigate }) => (
-    <section className="relative pt-28 pb-16 md:pt-48 md:pb-32 text-center">
-        <div className="container mx-auto px-4 md:px-6">
-            <AnimatedSection>
-                <h1 className="text-4xl md:text-6xl font-extrabold text-gray-900 leading-tight">
-                    The Digital Peace of Mind <br className="hidden md:inline" /> You Need.
-                </h1>
-                <p className="mt-6 max-w-2xl mx-auto text-lg text-gray-600">
-                    Lens Vault provides proof-backed cybersecurity solutions with local expertise and transparent pricing.
-                    Protecting your digital life, from individuals to businesses.
-                </p>
-                <div className="mt-10 flex flex-col sm:flex-row justify-center items-center gap-4">
-                    <button onClick={() => onNavigate('services')} className="w-full sm:w-auto font-semibold px-8 py-3 rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-all duration-300 transform hover:scale-105">
-                        Explore Our Services
-                    </button>
-                    <button onClick={() => onNavigate('pricing')} className="w-full sm:w-auto font-semibold px-8 py-3 rounded-md text-gray-700 bg-gray-200/80 hover:bg-gray-300/80 transition-colors duration-300">
-                        View Pricing
+const HeroSection: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigate }) => {
+    const { login, user, logout } = useAuth();
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [errorMsg, setErrorMsg] = useState('');
+
+    const handleLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setLoading(true);
+        setErrorMsg('');
+        try {
+            const success = await login(email, password);
+            if (success) {
+                // Redirect or show success
+            } else {
+                setErrorMsg('Invalid credentials');
+            }
+        } catch (err) {
+            setErrorMsg('Login failed');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <section className="relative min-h-screen flex items-center pt-20 pb-20 overflow-hidden">
+            {/* Background Glow Effects */}
+            <div className="absolute top-0 left-1/4 w-96 h-96 bg-forest-accent/10 rounded-full blur-3xl -z-10"></div>
+            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-forest-accent/5 rounded-full blur-3xl -z-10"></div>
+
+            <div className="container mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center relative z-10">
+                {/* Left Content */}
+                <div className="text-left space-y-8">
+                    <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight tracking-tight">
+                        Lens Vault <br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-forest-accent to-white">Build Your Mind</span>
+                    </h1>
+                    <p className="text-lg text-forest-300 max-w-xl leading-relaxed font-light">
+                        Secure your digital presence with advanced cybersecurity solutions. Proof-backed protection for individuals and businesses.
+                    </p>
+                    <button
+                        onClick={() => onNavigate('services')}
+                        className="mt-8 px-10 py-4 rounded-full border border-white/30 text-white font-medium hover:bg-white hover:text-forest-900 transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+                    >
+                        Get Started
                     </button>
                 </div>
-            </AnimatedSection>
-        </div>
-    </section>
-);
+
+                {/* Right Login Card */}
+                <div className="flex justify-center lg:justify-end">
+                    {user ? (
+                        <div className="glass-card p-10 w-full max-w-md text-center border border-forest-700/50">
+                            <div className="w-20 h-20 bg-forest-800 rounded-full mx-auto mb-6 flex items-center justify-center border border-forest-700">
+                                <UserIcon className="w-10 h-10 text-forest-accent" />
+                            </div>
+                            <h2 className="text-3xl font-bold text-white mb-2">Welcome Back</h2>
+                            <p className="text-forest-300 mb-8">{user.name}</p>
+
+                            <div className="grid grid-cols-2 gap-4 mb-8">
+                                <div className="bg-forest-900/50 p-4 rounded-2xl border border-forest-700/50">
+                                    <p className="text-xs text-forest-400 uppercase tracking-wider mb-1">Plan</p>
+                                    <p className="text-forest-accent font-bold">{user.plan || 'Free'}</p>
+                                </div>
+                                <div className="bg-forest-900/50 p-4 rounded-2xl border border-forest-700/50">
+                                    <p className="text-xs text-forest-400 uppercase tracking-wider mb-1">Status</p>
+                                    <p className="text-green-400 font-bold">Active</p>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={logout}
+                                className="w-full py-4 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-semibold rounded-xl transition-colors border border-red-500/20"
+                            >
+                                Logout
+                            </button>
+                        </div>
+                    ) : (
+                        <div className="w-full max-w-md">
+                            <h2 className="text-4xl font-bold text-white mb-10 text-center tracking-tight">Member Login</h2>
+                            <form onSubmit={handleLogin} className="space-y-6">
+                                <div className="relative group">
+                                    <EnvelopeIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-forest-400 group-focus-within:text-forest-accent transition-colors" />
+                                    <input
+                                        type="email"
+                                        placeholder="Enter your email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        className="w-full bg-transparent border border-forest-600 rounded-full py-4 pl-14 pr-6 text-white placeholder-forest-500 focus:outline-none focus:border-forest-accent focus:ring-1 focus:ring-forest-accent transition-all"
+                                    />
+                                </div>
+                                <div className="relative group">
+                                    <LockClosedIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-forest-400 group-focus-within:text-forest-accent transition-colors" />
+                                    <input
+                                        type="password"
+                                        placeholder="Enter your password"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        className="w-full bg-transparent border border-forest-600 rounded-full py-4 pl-14 pr-6 text-white placeholder-forest-500 focus:outline-none focus:border-forest-accent focus:ring-1 focus:ring-forest-accent transition-all"
+                                    />
+                                </div>
+
+                                <div className="flex items-center justify-between text-sm text-forest-300 px-2">
+                                    <label className="flex items-center gap-2 cursor-pointer hover:text-white transition-colors">
+                                        <input type="checkbox" className="rounded border-forest-600 bg-transparent text-forest-accent focus:ring-offset-0 focus:ring-forest-accent" />
+                                        Remember me
+                                    </label>
+                                    <a href="#" className="hover:text-white transition-colors">Forgot Password?</a>
+                                </div>
+
+                                {errorMsg && <p className="text-red-400 text-sm text-center bg-red-500/10 py-2 rounded-lg border border-red-500/20">{errorMsg}</p>}
+
+                                <button
+                                    type="submit"
+                                    disabled={loading}
+                                    className="w-full py-4 bg-gradient-to-r from-forest-accent to-forest-accentHover hover:shadow-[0_0_20px_rgba(14,165,233,0.4)] text-white font-bold rounded-full transition-all transform hover:scale-[1.02] mt-4"
+                                >
+                                    {loading ? 'Logging in...' : 'Login'}
+                                </button>
+
+                                <p className="text-center text-sm text-forest-400 mt-8">
+                                    Not a member? <a href="#" onClick={(e) => { e.preventDefault(); onNavigate('signup'); }} className="text-white font-semibold hover:underline ml-1">Sign up now</a>
+                                </p>
+                            </form>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </section>
+    );
+};
 
 const ServicesSection: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigate }) => (
-    <section className="py-16 md:py-24 bg-gray-50/50">
+    <section className="py-16 md:py-24">
         <div className="container mx-auto px-4 md:px-6">
             <AnimatedSection className="text-center">
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Comprehensive Protection for Everyone</h2>
-                <p className="mt-4 max-w-2xl mx-auto text-gray-600">
+                <h2 className="text-3xl md:text-5xl font-bold text-white">Comprehensive Protection for Everyone</h2>
+                <p className="mt-4 max-w-2xl mx-auto text-white/80 text-lg">
                     We offer tailored cybersecurity packages to fit the unique needs of individuals, families, and businesses.
                 </p>
             </AnimatedSection>
@@ -516,30 +723,36 @@ const WhyChooseUsSection: React.FC = () => (
             <div className="grid lg:grid-cols-2 gap-12 items-center">
                 <AnimatedSection>
                     <div className="pr-0 lg:pr-12">
-                        <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Why Lens Vault?</h2>
-                        <p className="mt-4 text-gray-600">
+                        <h2 className="text-3xl md:text-4xl font-bold text-white">Why Lens Vault?</h2>
+                        <p className="mt-4 text-white/90 text-lg">
                             In a world of digital uncertainty, we provide clarity and confidence. Our approach is built on three core pillars that set us apart.
                         </p>
                         <div className="mt-8 space-y-6">
                             <div className="flex items-start gap-4">
-                                <CheckCircleIcon className="w-10 h-10 text-blue-600 mt-1 flex-shrink-0" />
+                                <div className="bg-white/20 p-2 rounded-full">
+                                    <CheckCircleIcon className="w-8 h-8 text-white" />
+                                </div>
                                 <div>
-                                    <h3 className="font-semibold text-lg text-gray-900">Proof-Backed Solutions</h3>
-                                    <p className="text-gray-600">We don't just promise security; we demonstrate it. Our methods are transparent and our results are verifiable, giving you tangible proof of your digital safety.</p>
+                                    <h3 className="font-bold text-xl text-white">Proof-Backed Solutions</h3>
+                                    <p className="text-white/80">We don't just promise security; we demonstrate it. Our methods are transparent and our results are verifiable, giving you tangible proof of your digital safety.</p>
                                 </div>
                             </div>
                             <div className="flex items-start gap-4">
-                                <CheckCircleIcon className="w-10 h-10 text-blue-600 mt-1 flex-shrink-0" />
+                                <div className="bg-white/20 p-2 rounded-full">
+                                    <CheckCircleIcon className="w-8 h-8 text-white" />
+                                </div>
                                 <div>
-                                    <h3 className="font-semibold text-lg text-gray-900">Local Expertise</h3>
-                                    <p className="text-gray-600">Based in Nigeria, we have a deep understanding of the local digital landscape and its unique challenges. We provide culturally relevant and accessible support.</p>
+                                    <h3 className="font-bold text-xl text-white">Local Expertise</h3>
+                                    <p className="text-white/80">Based in Nigeria, we have a deep understanding of the local digital landscape and its unique challenges. We provide culturally relevant and accessible support.</p>
                                 </div>
                             </div>
                             <div className="flex items-start gap-4">
-                                <CheckCircleIcon className="w-10 h-10 text-blue-600 mt-1 flex-shrink-0" />
+                                <div className="bg-white/20 p-2 rounded-full">
+                                    <CheckCircleIcon className="w-8 h-8 text-white" />
+                                </div>
                                 <div>
-                                    <h3 className="font-semibold text-lg text-gray-900">Transparent Pricing</h3>
-                                    <p className="text-gray-600">No hidden fees or complex contracts. Our pricing is straightforward and honest, ensuring you know exactly what you're paying for.</p>
+                                    <h3 className="font-bold text-xl text-white">Transparent Pricing</h3>
+                                    <p className="text-white/80">No hidden fees or complex contracts. Our pricing is straightforward and honest, ensuring you know exactly what you're paying for.</p>
                                 </div>
                             </div>
                         </div>
@@ -565,23 +778,25 @@ const WhyChooseUsSection: React.FC = () => (
 
 
 const Testimonial: React.FC<{ quote: string; author: string; role: string; }> = ({ quote, author, role }) => (
-    <div className="bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-lg border border-gray-200/80 text-center">
-        <div className="text-yellow-500 flex justify-center gap-1 mb-4">
-            {[...Array(5)].map((_, i) => <StarIcon key={i} className="w-5 h-5" />)}
+    <div className="glass-card p-8 text-center h-full flex flex-col justify-center border border-forest-700/30">
+        <div className="text-yellow-400 flex justify-center gap-1 mb-4">
+            {[...Array(5)].map((_, i) => <StarIcon key={i} className="w-5 h-5 fill-current" />)}
         </div>
-        <p className="text-gray-700 italic">"{quote}"</p>
-        <p className="mt-4 font-bold text-gray-900">{author}</p>
-        <p className="text-sm text-gray-500">{role}</p>
+        <p className="text-forest-100 italic mb-6">"{quote}"</p>
+        <div>
+            <p className="font-bold text-white">{author}</p>
+            <p className="text-sm text-forest-accent font-medium">{role}</p>
+        </div>
     </div>
 );
 
 
 const TestimonialsSection: React.FC = () => (
-    <section className="py-16 md:py-24 bg-gray-50/50">
+    <section className="py-16 md:py-24">
         <div className="container mx-auto px-4 md:px-6">
             <AnimatedSection className="text-center">
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900">Trusted by Clients</h2>
-                <p className="mt-4 max-w-2xl mx-auto text-gray-600">
+                <h2 className="text-3xl md:text-4xl font-bold text-white">Trusted by Clients</h2>
+                <p className="mt-4 max-w-2xl mx-auto text-white/80">
                     Hear what our clients have to say about their experience with Lens Vault.
                 </p>
             </AnimatedSection>
@@ -616,13 +831,14 @@ const CallToActionSection: React.FC<{ onNavigate: (page: string) => void }> = ({
     <section className="py-16 md:py-24">
         <div className="container mx-auto px-4 md:px-6">
             <AnimatedSection>
-                <div className="bg-gray-900 text-white rounded-2xl p-8 md:p-16 text-center shadow-2xl">
-                    <h2 className="text-3xl md:text-4xl font-bold">Ready to Secure Your Digital World?</h2>
-                    <p className="mt-4 max-w-xl mx-auto text-gray-300">
+                <div className="glass-card p-8 md:p-16 text-center border border-forest-700/50 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-forest-accent to-transparent opacity-50"></div>
+                    <h2 className="text-3xl md:text-5xl font-bold text-white">Ready to Secure Your Digital World?</h2>
+                    <p className="mt-4 max-w-xl mx-auto text-forest-200 text-lg">
                         Don't wait for a threat to become a reality. Take the first step towards digital peace of mind today.
                     </p>
                     <div className="mt-8">
-                        <button onClick={() => onNavigate('contact')} className="font-semibold px-8 py-3 rounded-md text-gray-900 bg-white hover:bg-gray-200 transition-all duration-300 transform hover:scale-105">
+                        <button onClick={() => onNavigate('contact')} className="font-bold px-8 py-4 rounded-full text-forest-900 bg-forest-accent hover:bg-white transition-all duration-300 transform hover:scale-105 shadow-lg shadow-forest-accent/20">
                             Get a Free Consultation
                         </button>
                     </div>
@@ -645,68 +861,150 @@ const MainPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigate
 };
 
 const ServicesPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigate }) => {
-    const services = [
+    const coreServices = [
         {
             icon: <ShieldCheckIcon className="w-8 h-8" />,
-            title: "Individual Protection Plan",
-            description: "Secure your digital identity, personal devices, and online accounts. We conduct a thorough audit of your digital footprint, secure your social media and email accounts, and provide ongoing monitoring for threats.",
-            features: ["Digital Footprint Audit", "Email & Social Media Security", "Personal Device Hardening", "Dark Web Monitoring", "24/7 Support"]
+            title: "Vulnerability Assessment",
+            description: "We take a close look at your accounts, devices, and online presence to identify weak points that put you at risk. From passwords to privacy settings, we show you exactly what needs fixing."
         },
         {
-            icon: <UserGroupIcon className="w-8 h-8" />,
-            title: "Family Security Suite",
-            description: "Comprehensive protection for your entire family. Includes everything in the Individual Plan for up to 5 family members, plus parental controls, safe browsing education, and home network security.",
-            features: ["All Individual Plan Features", "Up to 5 Family Members", "Parental Control Setup", "Home Wi-Fi Security", "Family Tech Safety Workshop"]
+            icon: <LockClosedIcon className="w-8 h-8" />,
+            title: "Security Audit & Protection Setup",
+            description: "We secure everything that matters — your social media, emails, devices, and identity. This includes password manager setup, 2FA across all accounts, device hardening, scam-prevention tools, and brand protection checks. You get a clear before-and-after report showing the improvements made."
+        },
+        {
+            icon: <DocumentTextIcon className="w-8 h-8" />,
+            title: "Digital Estate Planning",
+            description: "We help you organize and protect your online assets for the future. You choose who can access what, how your accounts should be handled, and how private data should be preserved or deleted. It's modern peace of mind for the digital age."
+        }
+    ];
+
+    const packages = [
+        {
+            icon: <UserIcon className="w-8 h-8" />,
+            title: "Individual / Personal",
+            description: "Complete protection for 1 person. Full vulnerability assessment, security setup, and digital estate planning tailored to your personal digital life.",
+            coverage: "1 person"
+        },
+        {
+            icon: <StarIcon className="w-8 h-8" />,
+            title: "Influencer Protection",
+            description: "Protection for 1 primary account plus social assistants. Extra monitoring and platform security to protect your brand and online presence.",
+            coverage: "1 primary + social assistants"
         },
         {
             icon: <BriefcaseIcon className="w-8 h-8" />,
-            title: "Business Essentials",
-            description: "Safeguard your small to medium-sized business from cyber threats. We offer employee security training, network vulnerability assessments, data backup solutions, and incident response planning.",
-            features: ["Employee Cybersecurity Training", "Network Vulnerability Scans", "Secure Data Backup & Recovery", "Incident Response Plan", "Compliance Assistance (e.g., NDPR)"]
+            title: "Brand",
+            description: "Core team protection with account and device supervision for each staff member. Safeguard your brand reputation and business assets.",
+            coverage: "Core team"
+        },
+        {
+            icon: <UserGroupIcon className="w-8 h-8" />,
+            title: "Family Package",
+            description: "Comprehensive protection for up to 5 family members. Shared vault and common network security with scaled pricing for families.",
+            coverage: "Up to 5 members"
+        },
+        {
+            icon: <BriefcaseIcon className="w-8 h-8" />,
+            title: "Team / SME",
+            description: "Protection for small to medium enterprises with up to 10 users. Includes team training, shared security protocols, and economies of scale.",
+            coverage: "Up to 10 users"
         },
         {
             icon: <CrownIcon className="w-8 h-8" />,
-            title: "Enterprise Elite",
-            description: "Our premium, all-inclusive package for larger organizations or high-profile individuals requiring the utmost level of security. This bespoke service includes dedicated security analysts, penetration testing, and advanced threat intelligence.",
-            features: ["All Business Essentials Features", "Dedicated Security Analyst", "Regular Penetration Testing", "Advanced Threat Intelligence", "Custom Security Policy Development"]
-        },
+            title: "VIP",
+            description: "Premium protection for very important persons. Dedicated security analyst, priority support, and advanced threat intelligence for high-profile individuals.",
+            coverage: "1 VIP + support team"
+        }
     ];
 
     return (
         <section className="py-20 md:py-32">
             <div className="container mx-auto px-4 md:px-6">
                 <BackButton onClick={() => onNavigate('main')} />
-                <AnimatedSection className="text-center mb-12">
-                    <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900">Our Services</h1>
-                    <p className="mt-4 max-w-2xl mx-auto text-lg text-gray-600">
-                        Tailored, proof-backed cybersecurity solutions for every need.
+
+                {/* Header */}
+                <AnimatedSection className="text-center mb-16">
+                    <h1 className="text-4xl md:text-5xl font-extrabold text-white mb-4">What Lens Vault Does</h1>
+                    <p className="max-w-3xl mx-auto text-xl text-white/90 leading-relaxed">
+                        Lens Vault protects your digital life with three essential services designed to keep you safe long before problems happen.
                     </p>
                 </AnimatedSection>
-                <div className="space-y-12">
-                    {services.map((service, index) => (
-                        <AnimatedSection key={index}>
-                            <div className="bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-lg border border-gray-200/80 flex flex-col md:flex-row items-center gap-8">
-                                <div className="p-4 bg-blue-100 text-blue-600 rounded-full flex-shrink-0">
-                                    {service.icon}
+
+                {/* Core Services */}
+                <div className="mb-20">
+                    <h2 className="text-3xl font-bold text-white text-center mb-12">Our Core Services</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        {coreServices.map((service, index) => (
+                            <AnimatedSection key={index}>
+                                <div className="glass-card p-8 h-full group hover:bg-forest-800/50 transition-colors">
+                                    <div className="flex justify-center mb-6">
+                                        <div className="p-4 bg-forest-800 text-forest-accent rounded-full shadow-inner group-hover:bg-forest-accent group-hover:text-forest-900 transition-colors">
+                                            {service.icon}
+                                        </div>
+                                    </div>
+                                    <h3 className="text-2xl font-bold text-white text-center mb-4">{service.title}</h3>
+                                    <p className="text-forest-200 text-center leading-relaxed">{service.description}</p>
                                 </div>
-                                <div className="flex-grow text-center md:text-left">
-                                    <h2 className="text-2xl font-bold text-gray-900">{service.title}</h2>
-                                    <p className="mt-2 text-gray-600">{service.description}</p>
-                                    <div className="mt-4 flex flex-wrap justify-center md:justify-start gap-3">
-                                        {service.features.map(feature => (
-                                            <span key={feature} className="bg-gray-200 text-gray-800 text-sm font-medium px-3 py-1 rounded-full">{feature}</span>
-                                        ))}
+                            </AnimatedSection>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Service Packages */}
+                <div>
+                    <h2 className="text-3xl font-bold text-white text-center mb-4">Service Packages</h2>
+                    <p className="text-center text-white/80 mb-12 max-w-2xl mx-auto">
+                        Choose the package that fits your needs. All packages include our core services tailored to your specific situation.
+                    </p>
+                    <div className="space-y-8">
+                        {packages.map((pkg, index) => (
+                            <AnimatedSection key={index}>
+                                <div className="glass-card p-8 flex flex-col md:flex-row items-center gap-8 border border-forest-700/30">
+                                    <div className="p-4 bg-forest-800 text-forest-accent rounded-full flex-shrink-0 shadow-inner">
+                                        {pkg.icon}
+                                    </div>
+                                    <div className="flex-grow text-center md:text-left">
+                                        <h3 className="text-2xl font-bold text-white">{pkg.title}</h3>
+                                        <p className="text-sm text-forest-accent font-medium mb-3">{pkg.coverage}</p>
+                                        <p className="text-forest-200 leading-relaxed">{pkg.description}</p>
+                                    </div>
+                                    <div className="flex-shrink-0 mt-4 md:mt-0">
+                                        <button onClick={() => onNavigate('pricing')} className="font-bold px-6 py-3 rounded-full text-forest-900 bg-forest-accent hover:bg-white transition-colors shadow-md shadow-forest-accent/20">
+                                            View Pricing
+                                        </button>
                                     </div>
                                 </div>
-                                <div className="flex-shrink-0 mt-4 md:mt-0">
-                                    <button onClick={() => onNavigate('contact')} className="font-semibold px-6 py-3 rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors">
-                                        Request a Quote
-                                    </button>
-                                </div>
-                            </div>
-                        </AnimatedSection>
-                    ))}
+                            </AnimatedSection>
+                        ))}
+                    </div>
                 </div>
+
+                {/* Additional Services */}
+                <AnimatedSection className="mt-20">
+                    <div className="glass-card p-10 text-center border border-forest-700/50">
+                        <h2 className="text-3xl font-bold text-white mb-6">Additional Services</h2>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
+                            <div>
+                                <h3 className="text-xl font-bold text-forest-accent mb-3">🔐 Lens Vault Password Manager</h3>
+                                <p className="text-forest-200 leading-relaxed">
+                                    An AI-driven tool built on Google AI Studio that helps you generate, manage, and secure passwords — while identifying weak spots in real time. Your personal digital guardian — simple, smart, and built for Nigerians who want peace of mind, not tech headaches.
+                                </p>
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-bold text-forest-accent mb-3">📊 Retainer Monitoring Plan</h3>
+                                <p className="text-forest-200 leading-relaxed">
+                                    Ongoing account checks, security updates, and quick-response support for premium clients. Because cybersecurity isn't one-time — it's a lifestyle of staying secure and confident online.
+                                </p>
+                            </div>
+                        </div>
+                        <div className="mt-8">
+                            <button onClick={() => onNavigate('contact')} className="font-bold px-8 py-4 rounded-full text-forest-900 bg-forest-accent hover:bg-white transition-all duration-300 transform hover:scale-105 shadow-lg shadow-forest-accent/20">
+                                Get Started Today
+                            </button>
+                        </div>
+                    </div>
+                </AnimatedSection>
             </div>
         </section>
     );
@@ -723,15 +1021,108 @@ const PricingPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
         setupAmount: number; // Amount in Kobo
         retainerAmount: number; // Amount in Kobo
         icon: React.ReactNode;
+        features: string[];
+        popular?: boolean;
     };
 
     const plans: Plan[] = [
-        { name: "Individual", description: "For Individuals", setupCost: "₦150,000", retainer: "₦65,000", setupAmount: 15000000, retainerAmount: 6500000, icon: <ShieldCheckIcon className="w-8 h-8" /> },
-        { name: "Influencer", description: "For Social Media Professionals", setupCost: "₦200,000", retainer: "₦85,000", setupAmount: 20000000, retainerAmount: 8500000, icon: <StarIcon className="w-8 h-8" /> },
-        { name: "Brand", description: "For Growing Brands", setupCost: "₦300,000", retainer: "₦120,000", setupAmount: 30000000, retainerAmount: 12000000, icon: <BriefcaseIcon className="w-8 h-8" /> },
-        { name: "Family", description: "For Households", setupCost: "₦450,000", retainer: "₦160,000", setupAmount: 45000000, retainerAmount: 16000000, icon: <UserGroupIcon className="w-8 h-8" /> },
-        { name: "Team / SME", description: "For Small to Medium Enterprises", setupCost: "₦800,000", retainer: "₦380,000", setupAmount: 80000000, retainerAmount: 38000000, icon: <BriefcaseIcon className="w-8 h-8" /> },
-        { name: "VIP", description: "For High-Profile Clients", setupCost: "₦300,000", retainer: "₦180,000", setupAmount: 30000000, retainerAmount: 18000000, icon: <CrownIcon className="w-8 h-8" /> },
+        {
+            name: "Individual",
+            description: "For Individuals",
+            setupCost: "₦150,000",
+            retainer: "₦65,000",
+            setupAmount: 15000000,
+            retainerAmount: 6500000,
+            icon: <ShieldCheckIcon className="w-6 h-6" />,
+            features: [
+                "Vulnerability Assessment",
+                "Personal Device Security",
+                "Password Manager Setup",
+                "2FA Implementation",
+                "Email Security"
+            ]
+        },
+        {
+            name: "Influencer",
+            description: "For Social Pros",
+            setupCost: "₦200,000",
+            retainer: "₦85,000",
+            setupAmount: 20000000,
+            retainerAmount: 8500000,
+            icon: <StarIcon className="w-6 h-6" />,
+            features: [
+                "Everything in Individual",
+                "Social Media Hardening",
+                "Account Recovery Support",
+                "Brand Impersonation Checks",
+                "Priority Support"
+            ]
+        },
+        {
+            name: "Family",
+            description: "For Households",
+            setupCost: "₦450,000",
+            retainer: "₦160,000",
+            setupAmount: 45000000,
+            retainerAmount: 16000000,
+            icon: <UserGroupIcon className="w-6 h-6" />,
+            popular: true,
+            features: [
+                "Up to 5 Family Members",
+                "Home Network Security",
+                "Parental Control Setup",
+                "Shared Password Vault",
+                "Digital Estate Planning"
+            ]
+        },
+        {
+            name: "Brand",
+            description: "For Growing Brands",
+            setupCost: "₦300,000",
+            retainer: "₦120,000",
+            setupAmount: 30000000,
+            retainerAmount: 12000000,
+            icon: <BriefcaseIcon className="w-6 h-6" />,
+            features: [
+                "Core Team Protection",
+                "Business Asset Security",
+                "Employee Security Training",
+                "Phishing Simulation",
+                "Monthly Security Reports"
+            ]
+        },
+        {
+            name: "Team / SME",
+            description: "For Enterprises",
+            setupCost: "₦800,000",
+            retainer: "₦380,000",
+            setupAmount: 80000000,
+            retainerAmount: 38000000,
+            icon: <BriefcaseIcon className="w-6 h-6" />,
+            features: [
+                "Up to 10 Users",
+                "Advanced Threat Protection",
+                "Compliance Assistance",
+                "Incident Response Plan",
+                "Dedicated Account Manager"
+            ]
+        },
+        {
+            name: "VIP",
+            description: "High-Profile",
+            setupCost: "₦300,000",
+            retainer: "₦180,000",
+            setupAmount: 30000000,
+            retainerAmount: 18000000,
+            icon: <CrownIcon className="w-6 h-6" />,
+            features: [
+                "Personal Security Detail",
+                "24/7 Threat Monitoring",
+                "Travel Security Advisory",
+                "Crisis Management",
+                "Concierge Service"
+            ]
+        },
     ];
 
     const PaystackHookButton = ({ plan, amount, label, className }: { plan: Plan, amount: number, label: string, className?: string }) => {
@@ -744,8 +1135,21 @@ const PricingPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
 
         const initializePayment = usePaystackPayment(config);
 
-        const onSuccess = (reference: any) => {
-            updateUserPlan(`${plan.name} (${label})`);
+        const onSuccess = async (reference: any) => {
+            await updateUserPlan(`${plan.name} (${label})`);
+
+            // Save payment record to database
+            if (user) {
+                await dbService.createPayment({
+                    userId: user.id,
+                    planName: plan.name,
+                    amount: amount,
+                    paymentType: label.includes('Setup') ? 'setup' : 'retainer',
+                    reference: reference.reference || config.reference,
+                    status: 'completed'
+                });
+            }
+
             alert(`Payment successful! You have paid for: ${plan.name} - ${label}.`);
         };
 
@@ -761,7 +1165,7 @@ const PricingPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
                     return;
                 }
                 initializePayment({ onSuccess, onClose });
-            }} className={`w-full font-semibold px-4 py-2 rounded-md transition-colors ${className}`}>
+            }} className={`w-full font-bold px-4 py-3 rounded-lg transition-all duration-300 transform hover:scale-[1.02] shadow-lg ${className}`}>
                 {label}
             </button>
         );
@@ -778,62 +1182,83 @@ const PricingPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
         <section className="py-20 md:py-32">
             <div className="container mx-auto px-4 md:px-6">
                 <BackButton onClick={() => onNavigate('main')} />
-                <AnimatedSection className="text-center mb-12">
-                    <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900">Pricing</h1>
-                    <p className="mt-4 max-w-2xl mx-auto text-lg text-gray-600">
-                        Transparent and straightforward pricing for your peace of mind.
+                <AnimatedSection className="text-center mb-16">
+                    <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-6">Pricing Plans</h1>
+                    <p className="max-w-2xl mx-auto text-xl text-forest-300">
+                        Secure your digital life with a plan that fits your needs. Transparent pricing, no hidden fees.
                     </p>
                 </AnimatedSection>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {plans.map((plan, index) => (
                         <AnimatedSection key={index}>
-                            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-lg border border-gray-200/80 p-8 flex flex-col text-center h-full hover:shadow-xl transition-shadow duration-300">
-                                <div className="flex justify-center mb-4">
-                                    <div className="p-4 bg-blue-100 text-blue-600 rounded-full">
+                            <div className={`glass-card p-8 flex flex-col h-full transition-all duration-300 border relative group ${plan.popular ? 'border-forest-accent shadow-[0_0_30px_rgba(14,165,233,0.15)] scale-105 z-10' : 'border-forest-700/30 hover:border-forest-500/50'}`}>
+                                {plan.popular && (
+                                    <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-forest-accent text-forest-900 text-xs font-bold px-4 py-1 rounded-full uppercase tracking-wider shadow-lg">
+                                        Most Popular
+                                    </div>
+                                )}
+
+                                <div className="flex items-center gap-4 mb-6">
+                                    <div className={`p-3 rounded-xl ${plan.popular ? 'bg-forest-accent text-forest-900' : 'bg-forest-800 text-forest-accent'}`}>
                                         {plan.icon}
                                     </div>
-                                </div>
-                                <h2 className="text-2xl font-bold text-gray-900">{plan.name}</h2>
-                                <p className="text-gray-500 mb-6">{plan.description}</p>
-
-                                <div className="flex-grow space-y-4">
-                                    <div className="bg-gray-100 rounded-lg p-4">
-                                        <p className="text-sm text-gray-600">One-Time Setup</p>
-                                        <p className="text-3xl font-bold text-gray-900">{plan.setupCost}</p>
-                                    </div>
-                                    <div className="bg-blue-50 rounded-lg p-4">
-                                        <p className="text-sm text-gray-600">Monthly Retainer</p>
-                                        <p className="text-3xl font-bold text-gray-900">{plan.retainer}</p>
+                                    <div>
+                                        <h2 className="text-2xl font-bold text-white">{plan.name}</h2>
+                                        <p className="text-sm text-forest-400">{plan.description}</p>
                                     </div>
                                 </div>
 
-                                <div className="mt-8 space-y-3">
-                                    <div className="grid grid-cols-1 gap-3">
-                                        <PaystackHookButton
-                                            plan={plan}
-                                            amount={plan.setupAmount}
-                                            label={`Pay Setup (${plan.setupCost})`}
-                                            className="text-white bg-gray-900 hover:bg-gray-800"
-                                        />
-                                        <PaystackHookButton
-                                            plan={plan}
-                                            amount={plan.retainerAmount}
-                                            label={`Pay Retainer (${plan.retainer})`}
-                                            className="text-gray-900 bg-gray-200 hover:bg-gray-300"
-                                        />
+                                <div className="space-y-4 mb-8">
+                                    <div className="p-4 rounded-2xl bg-forest-900/50 border border-forest-700/30">
+                                        <p className="text-xs text-forest-400 uppercase tracking-wider mb-1">One-Time Setup</p>
+                                        <p className="text-3xl font-bold text-white">{plan.setupCost}</p>
                                     </div>
-                                    <button onClick={() => handleSelectPlan(plan)} className="text-sm text-gray-500 hover:text-gray-700 underline block w-full text-center mt-2">
-                                        Contact via WhatsApp
+                                    <div className="p-4 rounded-2xl bg-forest-900/30 border border-forest-700/30">
+                                        <p className="text-xs text-forest-400 uppercase tracking-wider mb-1">Monthly Retainer</p>
+                                        <p className="text-2xl font-bold text-forest-200">{plan.retainer}</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex-grow mb-8">
+                                    <p className="text-sm font-semibold text-white mb-4 uppercase tracking-wider">What's Included:</p>
+                                    <ul className="space-y-3">
+                                        {plan.features.map((feature, idx) => (
+                                            <li key={idx} className="flex items-start gap-3 text-sm text-forest-300">
+                                                <svg className="w-5 h-5 text-forest-accent flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                </svg>
+                                                <span className="leading-tight">{feature}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+
+                                <div className="space-y-3 mt-auto">
+                                    <PaystackHookButton
+                                        plan={plan}
+                                        amount={plan.setupAmount}
+                                        label="Pay Setup"
+                                        className={plan.popular
+                                            ? "bg-forest-accent hover:bg-white text-forest-900 hover:text-forest-900"
+                                            : "bg-white text-forest-900 hover:bg-forest-200"}
+                                    />
+                                    <PaystackHookButton
+                                        plan={plan}
+                                        amount={plan.retainerAmount}
+                                        label="Pay Retainer"
+                                        className="bg-transparent border border-forest-600 text-white hover:bg-forest-800"
+                                    />
+                                    <button onClick={() => handleSelectPlan(plan)} className="text-xs text-forest-400 hover:text-white transition-colors block w-full text-center mt-4">
+                                        Questions? Chat on WhatsApp
                                     </button>
                                 </div>
                             </div>
                         </AnimatedSection>
                     ))}
                 </div>
-
             </div>
-        </section >
+        </section>
     );
 };
 
@@ -843,21 +1268,27 @@ const ContactPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
     const [message, setMessage] = React.useState('');
     const [status, setStatus] = React.useState<'idle' | 'sending' | 'success' | 'error'>('idle');
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setStatus('sending');
-        // Mock API call
-        setTimeout(() => {
-            if (name && email && message) {
+
+        try {
+            const success = await dbService.submitContactMessage(name, email, message);
+            if (success) {
                 setStatus('success');
                 setName('');
                 setEmail('');
                 setMessage('');
+                setTimeout(() => setStatus('idle'), 3000);
             } else {
                 setStatus('error');
+                setTimeout(() => setStatus('idle'), 3000);
             }
+        } catch (error) {
+            console.error('Contact form error:', error);
+            setStatus('error');
             setTimeout(() => setStatus('idle'), 3000);
-        }, 1500);
+        }
     };
 
     return (
@@ -866,56 +1297,56 @@ const ContactPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
                 <BackButton onClick={() => onNavigate('main')} />
                 <div className="grid md:grid-cols-2 gap-12">
                     <AnimatedSection>
-                        <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900">Get in Touch</h1>
-                        <p className="mt-4 text-lg text-gray-600">
+                        <h1 className="text-4xl md:text-5xl font-extrabold text-white">Get in Touch</h1>
+                        <p className="mt-4 text-lg text-white/80">
                             Have a question or need a custom quote? We're here to help. Reach out to us, and we'll get back to you as soon as possible.
                         </p>
-                        <div className="mt-8 space-y-4 text-gray-700">
+                        <div className="mt-8 space-y-4 text-white/90">
                             <p className="flex items-center gap-3">
-                                <EnvelopeIcon className="w-6 h-6 text-blue-600" />
+                                <EnvelopeIcon className="w-6 h-6 text-white" />
                                 <strong>Email:</strong> <a href="mailto:lensvault@proton.me" className="hover:underline">lensvault@proton.me</a>
                             </p>
                             <p className="flex items-center gap-3">
-                                <WhatsAppIcon className="w-6 h-6 text-blue-600" />
+                                <WhatsAppIcon className="w-6 h-6 text-white" />
                                 <strong>WhatsApp:</strong> <a href="https://wa.me/2349068845666" target="_blank" rel="noopener noreferrer" className="hover:underline">+234 906 884 5666</a>
                             </p>
                         </div>
                         <div className="mt-8">
-                            <p className="font-semibold text-gray-900 mb-2">Follow us on social media:</p>
+                            <p className="font-bold text-white mb-2">Follow us on social media:</p>
                             <div className="flex items-center gap-4">
-                                <a href="https://instagram.com/lensvaultltd" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-gray-900 transition-colors"><span className="sr-only">Instagram</span><InstagramIcon className="w-7 h-7" /></a>
-                                <a href="https://twitter.com/LensVaultltd" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-gray-900 transition-colors"><span className="sr-only">Twitter</span><TwitterIcon className="w-7 h-7" /></a>
-                                <a href="https://www.linkedin.com/company/lens-vault/" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-gray-900 transition-colors"><span className="sr-only">LinkedIn</span><LinkedInIcon className="w-7 h-7" /></a>
+                                <a href="https://instagram.com/lensvaultltd" target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-white transition-colors"><span className="sr-only">Instagram</span><InstagramIcon className="w-7 h-7" /></a>
+                                <a href="https://twitter.com/LensVaultltd" target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-white transition-colors"><span className="sr-only">Twitter</span><TwitterIcon className="w-7 h-7" /></a>
+                                <a href="https://www.linkedin.com/company/lens-vault/" target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-white transition-colors"><span className="sr-only">LinkedIn</span><LinkedInIcon className="w-7 h-7" /></a>
                             </div>
                         </div>
                     </AnimatedSection>
                     <AnimatedSection>
-                        <div className="bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-lg border border-gray-200/80">
+                        <div className="glass-card p-8 border border-forest-700/30">
                             <form onSubmit={handleSubmit} className="space-y-6">
                                 <div>
-                                    <label htmlFor="name" className="block text-sm font-medium text-gray-700">Full Name</label>
-                                    <input type="text" id="name" value={name} onChange={e => setName(e.target.value)} required className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" />
+                                    <label htmlFor="name" className="block text-sm font-medium text-forest-200">Full Name</label>
+                                    <input type="text" id="name" value={name} onChange={e => setName(e.target.value)} required className="mt-1 block w-full px-4 py-3 border border-forest-600 rounded-lg shadow-sm focus:ring-forest-accent focus:border-forest-accent bg-forest-800/50 backdrop-blur-sm text-white placeholder-forest-400" />
                                 </div>
                                 <div>
-                                    <label htmlFor="email" className="block text-sm font-medium text-gray-700">Email Address</label>
-                                    <input type="email" id="email" value={email} onChange={e => setEmail(e.target.value)} required className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" />
+                                    <label htmlFor="email" className="block text-sm font-medium text-forest-200">Email Address</label>
+                                    <input type="email" id="email" value={email} onChange={e => setEmail(e.target.value)} required className="mt-1 block w-full px-4 py-3 border border-forest-600 rounded-lg shadow-sm focus:ring-forest-accent focus:border-forest-accent bg-forest-800/50 backdrop-blur-sm text-white placeholder-forest-400" />
                                 </div>
                                 <div>
-                                    <label htmlFor="message" className="block text-sm font-medium text-gray-700">Message</label>
-                                    <textarea id="message" value={message} onChange={e => setMessage(e.target.value)} rows={4} required className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"></textarea>
+                                    <label htmlFor="message" className="block text-sm font-medium text-forest-200">Message</label>
+                                    <textarea id="message" value={message} onChange={e => setMessage(e.target.value)} rows={4} required className="mt-1 block w-full px-4 py-3 border border-forest-600 rounded-lg shadow-sm focus:ring-forest-accent focus:border-forest-accent bg-forest-800/50 backdrop-blur-sm text-white placeholder-forest-400"></textarea>
                                 </div>
                                 <div>
                                     <button
                                         type="submit"
                                         disabled={status === 'sending'}
-                                        className="w-full flex justify-center items-center font-semibold px-6 py-3 rounded-md text-white bg-gray-900 hover:bg-gray-800 transition-colors disabled:bg-gray-500"
+                                        className="w-full flex justify-center items-center font-bold px-6 py-3 rounded-lg text-forest-900 bg-forest-accent hover:bg-white transition-colors disabled:bg-forest-600 shadow-md"
                                     >
                                         {status === 'sending' && <SpinnerIcon />}
                                         {status === 'sending' ? 'Sending...' : 'Send Message'}
                                     </button>
                                 </div>
-                                {status === 'success' && <p className="text-green-600">Message sent successfully!</p>}
-                                {status === 'error' && <p className="text-red-600">Please fill out all fields.</p>}
+                                {status === 'success' && <p className="text-green-400 font-medium text-center">Message sent successfully!</p>}
+                                {status === 'error' && <p className="text-red-400 font-medium text-center">Please fill out all fields.</p>}
                             </form>
                         </div>
                     </AnimatedSection>
@@ -929,91 +1360,139 @@ const LoginPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigat
     const [email, setEmail] = React.useState('');
     const [password, setPassword] = React.useState('');
     const [status, setStatus] = React.useState<'idle' | 'loggingIn' | 'error'>('idle');
-    const [error, setError] = React.useState('');
+    const [errorMsg, setErrorMsg] = React.useState('');
     const [walletAddress, setWalletAddress] = React.useState<string | null>(null);
 
-    const { login } = useAuth();
+    const { login, loginWithWallet, error } = useAuth();
 
-    const handleWalletConnect = (address: string) => {
+    const handleWalletConnect = async (address: string) => {
         setWalletAddress(address);
-        // Auto-login or enable "Enter Portal" button after wallet connect
-        setTimeout(() => {
-            login({ email: `${address}@wallet.eth`, name: `Wallet User`, walletAddress: address });
-            onNavigate('main');
-            alert(`Welcome back! Authenticated via Blockchain.\nWallet: ${address}`);
-        }, 1000);
+        setStatus('loggingIn');
+        try {
+            const success = await loginWithWallet(address);
+            if (success) {
+                onNavigate('main');
+            } else {
+                setErrorMsg('Failed to authenticate with wallet');
+                setStatus('error');
+            }
+        } catch (err: any) {
+            setErrorMsg(err.message || 'Wallet authentication failed');
+            setStatus('error');
+        }
     };
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleSocialLoginSuccess = (user: any) => {
+        onNavigate('main');
+    };
+
+    const handleSocialLoginError = (error: string) => {
+        setErrorMsg(error);
+        setStatus('error');
+    };
+
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         setStatus('loggingIn');
-        setError('');
+        setErrorMsg('');
 
-        setTimeout(() => {
-            const users = JSON.parse(localStorage.getItem('users') || '[]');
-            const user = users.find((u: any) => u.email === email && u.password === password);
-
-            if (user) {
-                login(user);
-                onNavigate('main');
-            } else if (email === 'admin@lensvault.com' && password === 'password') {
-                login({ email, name: 'Admin User', plan: 'VIP' });
+        try {
+            const success = await login(email, password);
+            if (success) {
                 onNavigate('main');
             } else {
                 setStatus('error');
-                setError('Invalid email or password.');
+                setErrorMsg(error || 'Invalid email or password.');
             }
-            setTimeout(() => setStatus('idle'), 2000);
-        }, 1500);
+        } catch (err: any) {
+            setStatus('error');
+            setErrorMsg(err.message || 'Login failed');
+        }
     };
 
     return (
-        <section className="py-24 md:py-32">
+        <section className="py-24 md:py-32 min-h-screen flex items-center justify-center">
             <div className="container mx-auto px-6">
                 <BackButton onClick={() => onNavigate('main')} />
                 <div className="max-w-md mx-auto">
                     <AnimatedSection>
-                        <div className="bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-lg border border-gray-200/80">
+                        <div className="glass-card p-10 relative">
+                            {/* Close button */}
+                            <button
+                                onClick={() => onNavigate('main')}
+                                className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-gray-800/50 hover:bg-gray-800/70 text-white transition-colors"
+                            >
+                                ✕
+                            </button>
+
                             <div className="text-center mb-8">
-                                <h1 className="text-3xl font-extrabold text-gray-900">Client Login</h1>
-                                <p className="mt-2 text-gray-600">Access your secure client portal.</p>
+                                <h1 className="text-4xl font-bold text-white mb-2">Login</h1>
                             </div>
 
-                            <div className="mb-8 pb-8 border-b border-gray-200">
-                                <h3 className="text-center text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Secure Blockchain Login</h3>
-                                <WalletConnect onConnect={handleWalletConnect} />
-                            </div>
-
-                            <div className="relative mb-6">
-                                <div className="absolute inset-0 flex items-center">
-                                    <div className="w-full border-t border-gray-300"></div>
-                                </div>
-                                <div className="relative flex justify-center text-sm">
-                                    <span className="px-2 bg-white text-gray-500">Or sign in with email</span>
-                                </div>
-                            </div>
                             <form onSubmit={handleLogin} className="space-y-6">
                                 <div>
-                                    <label htmlFor="login-email" className="block text-sm font-medium text-gray-700">Email Address</label>
-                                    <input type="email" id="login-email" value={email} onChange={e => setEmail(e.target.value)} required className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" />
+                                    <label htmlFor="login-email" className="block text-sm font-medium text-white/90 mb-2">Email</label>
+                                    <input
+                                        type="email"
+                                        id="login-email"
+                                        value={email}
+                                        onChange={e => setEmail(e.target.value)}
+                                        required
+                                        className="w-full px-4 py-3 bg-white/20 backdrop-blur-sm border-b-2 border-white/30 text-white placeholder-white/50 focus:outline-none focus:border-white/60 transition-colors"
+                                        placeholder="Enter your email"
+                                    />
                                 </div>
                                 <div>
-                                    <label htmlFor="login-password" className="block text-sm font-medium text-gray-700">Password</label>
-                                    <input type="password" id="login-password" value={password} onChange={e => setPassword(e.target.value)} required className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" />
+                                    <label htmlFor="login-password" className="block text-sm font-medium text-white/90 mb-2">Password</label>
+                                    <input
+                                        type="password"
+                                        id="login-password"
+                                        value={password}
+                                        onChange={e => setPassword(e.target.value)}
+                                        required
+                                        className="w-full px-4 py-3 bg-white/20 backdrop-blur-sm border-b-2 border-white/30 text-white placeholder-white/50 focus:outline-none focus:border-white/60 transition-colors"
+                                        placeholder="Enter your password"
+                                    />
                                 </div>
-                                <a href="#" className="text-sm text-blue-600 hover:underline">Forgot password?</a>
+
+                                <div className="flex items-center justify-between text-sm">
+                                    <label className="flex items-center text-white/80 cursor-pointer">
+                                        <input type="checkbox" className="mr-2 rounded" />
+                                        Remember me
+                                    </label>
+                                    <a href="#" className="text-white/80 hover:text-white transition-colors">Forgot Password?</a>
+                                </div>
+
                                 <div>
                                     <button
                                         type="submit"
                                         disabled={status === 'loggingIn'}
-                                        className="w-full flex justify-center items-center font-semibold px-6 py-3 rounded-md text-white bg-gray-900 hover:bg-gray-800 transition-colors disabled:bg-gray-500"
+                                        className="w-full flex justify-center items-center font-bold px-6 py-3 rounded-lg text-white bg-gray-900/80 hover:bg-gray-900 transition-colors disabled:bg-gray-600/50 shadow-lg"
                                     >
                                         {status === 'loggingIn' && <SpinnerIcon />}
-                                        {status === 'loggingIn' ? 'Signing In...' : 'Sign In'}
+                                        {status === 'loggingIn' ? 'Signing In...' : 'Login'}
                                     </button>
                                 </div>
-                                {status === 'error' && <p className="text-red-600 text-center">{error}</p>}
+                                {status === 'error' && <p className="text-red-300 text-center font-medium">{errorMsg}</p>}
                             </form>
+
+                            <div className="mt-6 text-center">
+                                <p className="text-sm text-white/70">
+                                    Don't have an account? <a href="#" onClick={(e) => { e.preventDefault(); onNavigate('signup'); }} className="text-white hover:underline font-medium">Register</a>
+                                </p>
+                            </div>
+
+                            {/* Social login section */}
+                            <div className="mt-8 pt-6 border-t border-white/20">
+                                <h3 className="text-center text-xs font-semibold text-white/60 uppercase tracking-wider mb-4">Or continue with</h3>
+                                <SocialLogin onSuccess={handleSocialLoginSuccess} onError={handleSocialLoginError} />
+                            </div>
+
+                            {/* Blockchain login section */}
+                            <div className="mt-8 pt-6 border-t border-white/20">
+                                <h3 className="text-center text-xs font-semibold text-white/60 uppercase tracking-wider mb-4">Or login with blockchain</h3>
+                                <WalletConnect onConnect={handleWalletConnect} />
+                            </div>
                         </div>
                     </AnimatedSection>
                 </div>
@@ -1024,19 +1503,30 @@ const LoginPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigat
 
 
 const SignupPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigate }) => {
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const { signup } = useAuth();
+    const [name, setName] = React.useState('');
+    const [email, setEmail] = React.useState('');
+    const [password, setPassword] = React.useState('');
+    const [status, setStatus] = React.useState<'idle' | 'signingUp' | 'error'>('idle');
+    const [errorMsg, setErrorMsg] = React.useState('');
 
-    const handleSignup = (e: React.FormEvent) => {
+    const { signup, error } = useAuth();
+
+    const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (signup({ name, email }, password)) {
-            alert('Account created successfully!');
-            onNavigate('main');
-        } else {
-            setError('User already exists with this email.');
+        setStatus('signingUp');
+        setErrorMsg('');
+
+        try {
+            const success = await signup(email, password, name);
+            if (success) {
+                onNavigate('main');
+            } else {
+                setStatus('error');
+                setErrorMsg(error || 'Signup failed. Email may already exist.');
+            }
+        } catch (err: any) {
+            setStatus('error');
+            setErrorMsg(err.message || 'Signup failed');
         }
     };
 
@@ -1046,36 +1536,40 @@ const SignupPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNaviga
                 <BackButton onClick={() => onNavigate('main')} />
                 <div className="max-w-md mx-auto">
                     <AnimatedSection>
-                        <div className="bg-white/80 backdrop-blur-sm p-8 rounded-2xl shadow-lg border border-gray-200/80">
+                        <div className="glass-card p-8">
                             <div className="text-center mb-8">
                                 <h1 className="text-3xl font-extrabold text-gray-900">Create Account</h1>
-                                <p className="mt-2 text-gray-600">Join Lens Vault today.</p>
+                                <p className="mt-2 text-gray-600">Join Lens Vault and secure your digital life.</p>
                             </div>
                             <form onSubmit={handleSignup} className="space-y-6">
                                 <div>
                                     <label htmlFor="signup-name" className="block text-sm font-medium text-gray-700">Full Name</label>
-                                    <input type="text" id="signup-name" value={name} onChange={e => setName(e.target.value)} required className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" />
+                                    <input type="text" id="signup-name" value={name} onChange={e => setName(e.target.value)} required className="mt-1 block w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white/50 backdrop-blur-sm" />
                                 </div>
                                 <div>
                                     <label htmlFor="signup-email" className="block text-sm font-medium text-gray-700">Email Address</label>
-                                    <input type="email" id="signup-email" value={email} onChange={e => setEmail(e.target.value)} required className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" />
+                                    <input type="email" id="signup-email" value={email} onChange={e => setEmail(e.target.value)} required className="mt-1 block w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white/50 backdrop-blur-sm" />
                                 </div>
                                 <div>
                                     <label htmlFor="signup-password" className="block text-sm font-medium text-gray-700">Password</label>
-                                    <input type="password" id="signup-password" value={password} onChange={e => setPassword(e.target.value)} required className="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" />
+                                    <input type="password" id="signup-password" value={password} onChange={e => setPassword(e.target.value)} required className="mt-1 block w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white/50 backdrop-blur-sm" />
                                 </div>
                                 <div>
                                     <button
                                         type="submit"
-                                        className="w-full flex justify-center items-center font-semibold px-6 py-3 rounded-md text-white bg-gray-900 hover:bg-gray-800 transition-colors"
+                                        disabled={status === 'signingUp'}
+                                        className="w-full flex justify-center items-center font-bold px-6 py-3 rounded-lg text-white bg-gray-900/80 hover:bg-gray-900 transition-colors disabled:bg-gray-400 shadow-md"
                                     >
-                                        Sign Up
+                                        {status === 'signingUp' && <SpinnerIcon />}
+                                        {status === 'signingUp' ? 'Creating Account...' : 'Sign Up'}
                                     </button>
                                 </div>
-                                {error && <p className="text-red-600 text-center">{error}</p>}
+                                {status === 'error' && <p className="text-red-600 text-center font-medium">{errorMsg}</p>}
                             </form>
                             <div className="mt-6 text-center">
-                                <p className="text-sm text-gray-600">Already have an account? <a href="#" onClick={(e) => { e.preventDefault(); onNavigate('login'); }} className="text-blue-600 hover:underline">Log in</a></p>
+                                <p className="text-sm text-gray-600">
+                                    Already have an account? <a href="#" onClick={(e) => { e.preventDefault(); onNavigate('login'); }} className="text-blue-600 hover:underline font-medium">Log in</a>
+                                </p>
                             </div>
                         </div>
                     </AnimatedSection>
@@ -1115,9 +1609,10 @@ const App: React.FC = () => {
 
     return (
         <AuthProvider>
-            <div className="flex flex-col min-h-screen">
+            <div className="flex flex-col min-h-screen relative">
+                <AnimatedBackground />
                 <Header onNavigate={handleNavigate} />
-                <main className="flex-grow">
+                <main className="flex-grow z-10">
                     {renderPage()}
                 </main>
                 <Footer onNavigate={handleNavigate} />
