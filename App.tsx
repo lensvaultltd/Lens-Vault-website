@@ -788,29 +788,29 @@ const TestimonialsSection: React.FC = () => (
             <AnimatedSection className="text-center">
                 <h2 className="text-3xl md:text-4xl font-bold text-white">Trusted by Clients</h2>
                 <p className="mt-4 max-w-2xl mx-auto text-white/80">
-                    Hear what our clients have to say about their experience with Lens Vault.
+                    Hear what our partners have to say about their experience with Lens Vault.
                 </p>
             </AnimatedSection>
             <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                 <AnimatedSection>
                     <Testimonial
-                        quote="Lens Vault transformed our security posture. Their team is knowledgeable, responsive, and truly cares about our safety. I can finally sleep at night knowing our business is protected."
-                        author="Femi Adebayo"
-                        role="CEO, TechSolutions Ltd."
+                        quote="Lens Vault's security infrastructure allowed us to scale our web solutions with confidence. Their vulnerability assessment was an eye-opener."
+                        author="Founder"
+                        role="OrivonEdge"
                     />
                 </AnimatedSection>
                 <AnimatedSection>
                     <Testimonial
-                        quote="As a family, online safety was our top concern. Lens Vault provided an easy-to-understand solution that keeps our kids and our data safe. Their service is invaluable."
-                        author="Aisha Bello"
-                        role="Mother & Home User"
+                        quote="Protecting our community members online is paramount. Lens Vault provided the education and tools we needed to ensure everyone stays safe."
+                        author="Founder"
+                        role="The Savwomen"
                     />
                 </AnimatedSection>
                 <AnimatedSection>
                     <Testimonial
-                        quote="The transparency in their process and pricing is a breath of fresh air. They delivered exactly what they promised, with clear evidence of their work. Highly recommended."
-                        author="Chinedu Okoro"
-                        role="Freelance Developer"
+                        quote="As an innovation hub, intellectual property security is key. Lens Vault delivered a robust protection strategy for our startups."
+                        author="Program Director"
+                        role="Nile Collective Lab"
                     />
                 </AnimatedSection>
             </div>
