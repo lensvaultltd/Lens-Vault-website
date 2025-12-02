@@ -263,21 +263,14 @@ const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
 
-    // Check for existing session on mount
+    // Check for existing session on mount and listen for changes
     useEffect(() => {
-        const checkSession = async () => {
-            try {
-                const currentUser = await authService.getCurrentUser();
-                if (currentUser) {
-                    setUser(currentUser);
-                }
-            } catch (err) {
-                console.error('Session check error:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
-        checkSession();
+        const unsubscribe = authService.observeAuthState((currentUser) => {
+            setUser(currentUser);
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
     }, []);
 
     const login = async (email: string, password: string): Promise<boolean> => {
