@@ -1,0 +1,25 @@
+
+> lens-vault@0.0.0 build
+> vite build
+
+[36mvite v6.4.1 [32mbuilding for production...[36m[39m
+transforming...
+[32mΓ£ô[39m 3 modules transformed.
+Γ£ù Build failed in 211ms
+error during build:
+[vite:css] Failed to load PostCSS config (searchPath: C:/Users/Fatim/Downloads/Lens Vault Website): [Error] Loading PostCSS Plugin failed: Cannot find module 'tailwindcss'
+Require stack:
+- C:\Users\Fatim\Downloads\Lens Vault Website\postcss.config.js
+
+(@C:\Users\Fatim\Downloads\Lens Vault Website\postcss.config.js)
+Error: Loading PostCSS Plugin failed: Cannot find module 'tailwindcss'
+Require stack:
+- C:\Users\Fatim\Downloads\Lens Vault Website\postcss.config.js
+
+(@C:\Users\Fatim\Downloads\Lens Vault Website\postcss.config.js)
+    at load (file:///C:/Users/Fatim/Downloads/Lens%20Vault%20Website/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:11776:11)
+    at async Promise.all (index 0)
+    at async plugins (file:///C:/Users/Fatim/Downloads/Lens%20Vault%20Website/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:11805:12)
+    at async processResult (file:///C:/Users/Fatim/Downloads/Lens%20Vault%20Website/node_modules/vite/dist/node/chunks/dep-D4NMHUTW.js:11876:14)
+file: C:/Users/Fatim/Downloads/Lens Vault Website/index.css
+
