@@ -7,6 +7,10 @@ import * as authService from './src/services/authService';
 import * as dbService from './src/services/databaseService';
 import { SocialLogin } from './src/components/SocialLogin';
 import AnimatedBackground from './src/components/AnimatedBackground';
+import logoImg from './src/assets/logo.png';
+import orivonImg from './src/assets/orivon.png';
+import savwomenImg from './src/assets/savwomen.jpg';
+import nileImg from './src/assets/nile.png';
 import type { User } from './src/types/database.types';
 import {
     ShieldCheck, Users, Briefcase, Star, Crown, Lock, FileText, User as UserIcon, Mail, Loader,
@@ -22,7 +26,7 @@ declare global {
 // --- SVG Icon Components ---
 
 const LogoIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <img src="/assets/logo.png" alt="Lens Vault Logo" className={className} />
+    <img src={logoImg} alt="Lens Vault Logo" className={className} />
 );
 
 
@@ -753,13 +757,13 @@ const TrustedCollaboratorsSection: React.FC = () => (
             <p className="text-center text-forest-300 mb-8 uppercase tracking-widest text-sm font-semibold">Trusted Collaborators & Partners</p>
             <div className="flex flex-wrap justify-center items-center gap-12 md:gap-20 opacity-80 hover:opacity-100 transition-opacity duration-300">
                 <a href="https://www.orivonedge.dev/" target="_blank" rel="noopener noreferrer" className="group flex flex-col items-center gap-3 transition-transform hover:scale-105">
-                    <img src="/assets/orivon.png" alt="OrivonEdge" className="h-12 md:h-16 w-auto object-contain brightness-0 invert group-hover:brightness-100 group-hover:invert-0 transition-all duration-300" />
+                    <img src={orivonImg} alt="OrivonEdge" className="h-12 md:h-16 w-auto object-contain brightness-0 invert group-hover:brightness-100 group-hover:invert-0 transition-all duration-300" />
                 </a>
                 <a href="https://www.instagram.com/thesavwomen/" target="_blank" rel="noopener noreferrer" className="group flex flex-col items-center gap-3 transition-transform hover:scale-105">
-                    <img src="/assets/savwomen.jpg" alt="The Savwomen" className="h-12 md:h-16 w-auto object-contain" />
+                    <img src={savwomenImg} alt="The Savwomen" className="h-12 md:h-16 w-auto object-contain" />
                 </a>
                 <a href="https://www.linkedin.com/company/honoris-collective-lab-nile-university-of-nigeria?originalSubdomain=ng" target="_blank" rel="noopener noreferrer" className="group flex flex-col items-center gap-3 transition-transform hover:scale-105">
-                    <img src="/assets/nile.png" alt="Nile Collective Lab" className="h-12 md:h-16 w-auto object-contain bg-white/10 rounded-lg p-1" />
+                    <img src={nileImg} alt="Nile Collective Lab" className="h-12 md:h-16 w-auto object-contain bg-white/10 rounded-lg p-1" />
                 </a>
             </div>
         </div>
