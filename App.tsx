@@ -346,49 +346,42 @@ const HeroSection: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
             <div className="absolute top-0 left-1/4 w-96 h-96 bg-forest-accent/10 rounded-full blur-3xl -z-10"></div>
             <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-forest-accent/5 rounded-full blur-3xl -z-10"></div>
 
-            <div className="container mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center relative z-10">
-                {/* Left Content */}
-                <div className="text-left space-y-8">
-                    <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight tracking-tight">
-                        Lens Vault <br />
-                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-forest-accent to-white">Build Your Mind</span>
+            {user ? (
+                <div className="container mx-auto px-6 flex flex-col items-center text-center relative z-10">
+                    <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight tracking-tight mb-6">
+                        Welcome Back, <span className="text-forest-accent">{user.name}</span>
                     </h1>
-                    <p className="text-lg text-forest-300 max-w-xl leading-relaxed font-light">
-                        Secure your digital presence with advanced cybersecurity solutions. Proof-backed protection for individuals and businesses.
+                    <p className="text-lg text-forest-300 max-w-2xl leading-relaxed font-light mb-10">
+                        Your digital fortress is active. Manage your security settings and view your protection status from your dashboard.
                     </p>
                     <button
-                        onClick={() => onNavigate('services')}
-                        className="mt-8 px-10 py-4 rounded-full border border-white/30 text-white font-medium hover:bg-white hover:text-forest-900 transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+                        onClick={() => onNavigate('profile')}
+                        className="px-10 py-4 bg-forest-accent hover:bg-white hover:text-forest-900 text-forest-900 font-bold rounded-full transition-all duration-300 transform hover:scale-105 shadow-[0_0_20px_rgba(14,165,233,0.4)]"
                     >
-                        Get Started
+                        Go to Dashboard
                     </button>
                 </div>
+            ) : (
+                <div className="container mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center relative z-10">
+                    {/* Left Content */}
+                    <div className="text-left space-y-8">
+                        <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight tracking-tight">
+                            Lens Vault <br />
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-forest-accent to-white">Build Your Mind</span>
+                        </h1>
+                        <p className="text-lg text-forest-300 max-w-xl leading-relaxed font-light">
+                            Secure your digital presence with advanced cybersecurity solutions. Proof-backed protection for individuals and businesses.
+                        </p>
+                        <button
+                            onClick={() => onNavigate('services')}
+                            className="mt-8 px-10 py-4 rounded-full border border-white/30 text-white font-medium hover:bg-white hover:text-forest-900 transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+                        >
+                            Get Started
+                        </button>
+                    </div>
 
-                {/* Right Login Card */}
-                <div className="flex justify-center lg:justify-end">
-                    {user ? (
-                        <div className="glass-card p-6 md:p-10 w-full max-w-md text-center border border-forest-700/50">
-                            <div className="w-20 h-20 bg-forest-800 rounded-full mx-auto mb-6 flex items-center justify-center border border-forest-700">
-                                <UserIcon className="w-10 h-10 text-forest-accent" />
-                            </div>
-                            <h2 className="text-3xl font-bold text-white mb-2">Welcome Back</h2>
-                            <p className="text-forest-300 mb-8">{user.name}</p>
-
-                            <button
-                                onClick={() => onNavigate('profile')}
-                                className="w-full py-4 bg-forest-accent hover:bg-white hover:text-forest-900 text-forest-900 font-bold rounded-xl transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg mb-4"
-                            >
-                                Go to Dashboard
-                            </button>
-
-                            <button
-                                onClick={logout}
-                                className="w-full py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-semibold rounded-xl transition-colors border border-red-500/20"
-                            >
-                                Logout
-                            </button>
-                        </div>
-                    ) : (
+                    {/* Right Login Card */}
+                    <div className="flex justify-center lg:justify-end">
                         <div className="w-full max-w-md">
                             <h2 className="text-4xl font-bold text-white mb-10 text-center tracking-tight">Member Login</h2>
                             <form onSubmit={handleLogin} className="space-y-6">
@@ -436,9 +429,9 @@ const HeroSection: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
                                 </p>
                             </form>
                         </div>
-                    )}
+                    </div>
                 </div>
-            </div>
+            )}
         </section>
     );
 };
