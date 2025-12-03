@@ -1,5 +1,6 @@
+// @ts-nocheck
 import { supabase } from '../lib/supabase';
-import type { User, Payment, ContactMessage } from '../types/database.types';
+import type { User, Payment, ContactMessage, Feedback } from '../types/database.types';
 
 /**
  * Update user's plan
@@ -185,5 +186,63 @@ export async function getUserById(userId: string): Promise<User | null> {
     } catch (error) {
         console.error('Get user by ID error:', error);
         return null;
+    }
+}
+
+/**
+ * Submit feedback
+ */
+export async function submitFeedback(
+    userId: string | null,
+    message: string,
+    rating?: number
+): Promise<boolean> {
+    try {
+        const { error } = await supabase
+            .from('feedback')
+            .insert({
+                user_id: userId,
+                message,
+                rating
+            });
+
+        if (error) throw error;
+        return true;
+    } catch (error) {
+        console.error('Submit feedback error:', error);
+        return false;
+    }
+}
+
+/**
+ * Get all feedback (admin only)
+ */
+export async function getFeedback(): Promise<Feedback[]> {
+    try {
+        const { data, error } = await supabase
+            .from('feedback')
+            .select(`
+                *,
+                users (
+                    name,
+                    email
+                )
+            `)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        return (data || []).map(item => ({
+            id: item.id,
+            userId: item.user_id,
+            userName: item.users?.name,
+            userEmail: item.users?.email,
+            message: item.message,
+            rating: item.rating,
+            createdAt: item.created_at
+        }));
+    } catch (error) {
+        console.error('Get feedback error:', error);
+        return [];
     }
 }

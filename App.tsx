@@ -10,12 +10,17 @@ import AnimatedBackground from './src/components/AnimatedBackground';
 import logoImg from './src/assets/logo.png';
 import orivonImg from './src/assets/orivon.png';
 import savwomenImg from './src/assets/savwomen.jpg';
-import nileImg from './src/assets/nile.png';
+import nileImg from './src/assets/nile.jpg';
 import type { User } from './src/types/database.types';
 import {
     ShieldCheck, Users, Briefcase, Star, Crown, Lock, FileText, User as UserIcon, Mail, Loader,
-    Menu, X, CheckCircle, Globe, Tag, ShieldAlert
+    Menu, X, CheckCircle, Globe, Tag, ShieldAlert, Eye, EyeOff, Instagram as InstagramIcon, Twitter as TwitterIcon,
+    Linkedin as LinkedInIcon, MessageCircle
 } from 'lucide-react';
+import { resetPassword } from './src/services/authService';
+import { FeedbackModal } from './src/components/FeedbackModal';
+import AdminPage from './src/pages/AdminPage';
+import { AuthProvider, useAuth } from './src/context/AuthContext';
 
 declare global {
     interface Window {
@@ -31,21 +36,7 @@ const LogoIcon: React.FC<{ className?: string }> = ({ className }) => (
 
 
 
-const WhatsAppIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg className={className} fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M16.75 13.96c.25.13.43.2.5.33.08.13.12.28.12.48 0 .2-.04.38-.12.53s-.17.28-.3.4c-.13.13-.28.23-.45.33-.18.1-.38.16-.6.2-.23.04-.48.06-.75.06-.35 0-.68-.04-1-.13-.33-.08-.65-.2-1-.35-.33-.16-.65-.34-1-.54-.34-.2-.68-.44-1-.7-.33-.25-.63-.54-.9-.85-.28-.3-.54-.64-.78-1-.24-.38-.44-.78-.6-1.2-.18-.43-.3-.88-.38-1.35-.08-.48-.12-1-.12-1.5 0-.43.04-.83.12-1.2.08-.38.2-.72.38-1.04.18-.3.4-.58.68-.8.28-.2.6-.36.96-.46.35-.1.74-.16 1.15-.16.2 0 .4-.02.6-.02.23 0 .43.02.6.05.18.03.35.1.48.18.13.08.25.18.34.3.1.12.17.25.22.4.05.15.08.3.08.45 0 .15-.03.3-.08.43-.05.13-.12.25-.2.35-.08.1-.18.18-.28.24-.1.06-.22.1-.34.13-.12.03-.25.05-.38.05-.18 0-.35-.03-.5-.08-.15-.05-.3-.08-.4-.08-.08 0-.15.02-.23.05-.08.03-.15.08-.2.13-.05.05-.1.1-.14.18-.04.08-.06.15-.06.22 0 .06.02.13.05.2.03.08.08.15.14.22.06.08.13.14.2.2.08.08.17.14.25.2.1.08.2.14.3.2.08.06.18.1.28.14.1.04.2.06.3.06.15 0 .3-.03.4-.08.1-.05.2-.12.28-.2.08-.08.14-.17.2-.25.05-.08.08-.18.08-.28 0-.1-.02-.2-.05-.28-.03-.08-.08-.15-.14-.2-.06-.05-.12-.1-.2-.13-.08-.03-.15-.05-.23-.05-.1 0-.2.02-.3.06-.1.04-.2.1-.3.18-.1.08-.18.15-.25.2-.08.05-.14.1-.2.13-.06.03-.1.05-.14.05-.03 0-.05-.02-.06-.03-.02-.02-.03-.04-.03-.06 0-.05.02-.1.06-.14.04-.04.1-.1.15-.15.05-.05.1-.1.15-.14.05-.04.1-.08.14-.1.04-.03.1-.05.14-.06.04-.02.1-.03.14-.03.18 0 .34.03.5.1zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z" /></svg>
-);
 
-const InstagramIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg className={className} fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.85s-.011 3.584-.069 4.85c-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07s-3.584-.012-4.85-.07c-3.252-.148-4.771-1.691-4.919-4.919-.058-1.265-.069-1.645-.069-4.85s.011-3.584.069-4.85c.149-3.225 1.664-4.771 4.919-4.919 1.266-.058 1.644-.07 4.85-.07zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948s.014 3.667.072 4.947c.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072s3.667-.014 4.947-.072c4.358-.2 6.78-2.618 6.98-6.98.059-1.281.073-1.689.073-4.948s-.014-3.667-.072-4.947c-.2-4.358-2.618-6.78-6.98-6.98-1.281-.058-1.689-.072-4.948-.072zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.162 6.162 6.162 6.162-2.759 6.162-6.162-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4s1.791-4 4-4 4 1.79 4 4-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44 1.441-.645 1.441-1.44-.645-1.44-1.441-1.44z" /></svg>
-);
-
-const TwitterIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg className={className} fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.223.085a4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z" /></svg>
-);
-
-const LinkedInIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg className={className} fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 11-4.125 0 2.062 2.062 0 014.125 0zM7.142 20.452H3.555V9h3.587v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.225 0z" /></svg>
-);
 
 
 
@@ -156,132 +147,7 @@ const WalletConnect: React.FC<{ onConnect: (address: string) => void }> = ({ onC
 };
 
 
-// --- Auth Context ---
-interface AuthContextType {
-    user: User | null;
-    loading: boolean;
-    login: (email: string, password: string) => Promise<boolean>;
-    signup: (email: string, password: string, name: string) => Promise<boolean>;
-    loginWithWallet: (walletAddress: string) => Promise<boolean>;
-    logout: () => Promise<void>;
-    updateUserPlan: (plan: string) => Promise<void>;
-    error: string | null;
-}
 
-const AuthContext = createContext<AuthContextType | null>(null);
-
-const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-    const [user, setUser] = useState<User | null>(null);
-    const [loading, setLoading] = useState<boolean>(true);
-    const [error, setError] = useState<string | null>(null);
-
-    // Check for existing session on mount and listen for changes
-    useEffect(() => {
-        const unsubscribe = authService.observeAuthState((currentUser) => {
-            setUser(currentUser);
-            setLoading(false);
-        });
-
-        return () => unsubscribe();
-    }, []);
-
-    const login = async (email: string, password: string): Promise<boolean> => {
-        setError(null);
-        setLoading(true);
-        try {
-            const result = await authService.signInWithEmail(email, password);
-            if (result.success && result.user) {
-                setUser(result.user);
-                return true;
-            } else {
-                setError(result.error || 'Login failed');
-                return false;
-            }
-        } catch (err: any) {
-            setError(err.message || 'Login failed');
-            return false;
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const signup = async (email: string, password: string, name: string): Promise<boolean> => {
-        setError(null);
-        setLoading(true);
-        try {
-            const result = await authService.signUpWithEmail(email, password, name);
-            if (result.success && result.user) {
-                setUser(result.user);
-                return true;
-            } else {
-                setError(result.error || 'Signup failed');
-                return false;
-            }
-        } catch (err: any) {
-            setError(err.message || 'Signup failed');
-            return false;
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const loginWithWallet = async (walletAddress: string): Promise<boolean> => {
-        setError(null);
-        setLoading(true);
-        try {
-            const result = await authService.signInWithWallet(walletAddress);
-            if (result.success && result.user) {
-                setUser(result.user);
-                return true;
-            } else {
-                setError(result.error || 'Wallet login failed');
-                return false;
-            }
-        } catch (err: any) {
-            setError(err.message || 'Wallet login failed');
-            return false;
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const logout = async (): Promise<void> => {
-        setLoading(true);
-        try {
-            await authService.signOut();
-            setUser(null);
-        } catch (err) {
-            console.error('Logout error:', err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const updateUserPlan = async (plan: string): Promise<void> => {
-        if (user) {
-            try {
-                const success = await dbService.updateUserPlan(user.id, plan);
-                if (success) {
-                    setUser({ ...user, plan });
-                }
-            } catch (err) {
-                console.error('Update plan error:', err);
-            }
-        }
-    };
-
-    return (
-        <AuthContext.Provider value={{ user, loading, login, signup, loginWithWallet, logout, updateUserPlan, error }}>
-            {children}
-        </AuthContext.Provider>
-    );
-};
-
-const useAuth = () => {
-    const context = useContext(AuthContext);
-    if (!context) throw new Error('useAuth must be used within an AuthProvider');
-    return context;
-};
 
 
 // --- Page Layout Components ---
@@ -508,20 +374,16 @@ const HeroSection: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
                             <h2 className="text-3xl font-bold text-white mb-2">Welcome Back</h2>
                             <p className="text-forest-300 mb-8">{user.name}</p>
 
-                            <div className="grid grid-cols-2 gap-4 mb-8">
-                                <div className="bg-forest-900/50 p-4 rounded-2xl border border-forest-700/50">
-                                    <p className="text-xs text-forest-400 uppercase tracking-wider mb-1">Plan</p>
-                                    <p className="text-forest-accent font-bold">{user.plan || 'Free'}</p>
-                                </div>
-                                <div className="bg-forest-900/50 p-4 rounded-2xl border border-forest-700/50">
-                                    <p className="text-xs text-forest-400 uppercase tracking-wider mb-1">Status</p>
-                                    <p className="text-green-400 font-bold">Active</p>
-                                </div>
-                            </div>
+                            <button
+                                onClick={() => onNavigate('profile')}
+                                className="w-full py-4 bg-forest-accent hover:bg-white hover:text-forest-900 text-forest-900 font-bold rounded-xl transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg mb-4"
+                            >
+                                Go to Dashboard
+                            </button>
 
                             <button
                                 onClick={logout}
-                                className="w-full py-4 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-semibold rounded-xl transition-colors border border-red-500/20"
+                                className="w-full py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-semibold rounded-xl transition-colors border border-red-500/20"
                             >
                                 Logout
                             </button>
@@ -1230,7 +1092,7 @@ const ContactPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
                                 <strong>Email:</strong> <a href="mailto:lensvault@proton.me" className="hover:underline">lensvault@proton.me</a>
                             </p>
                             <p className="flex items-center gap-3">
-                                <WhatsAppIcon className="w-6 h-6 text-white" />
+                                <MessageCircle className="w-6 h-6 text-white" />
                                 <strong>WhatsApp:</strong> <a href="https://wa.me/2349068845666" target="_blank" rel="noopener noreferrer" className="hover:underline">+234 906 884 5666</a>
                             </p>
                         </div>
@@ -1279,12 +1141,74 @@ const ContactPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
     );
 };
 
+const ProfilePage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigate }) => {
+    const { user, logout } = useAuth();
+
+    if (!user) {
+        onNavigate('login');
+        return null;
+    }
+
+    return (
+        <section className="py-24 md:py-32 min-h-screen flex items-center justify-center">
+            <div className="container mx-auto px-6">
+                <BackButton onClick={() => onNavigate('main')} />
+                <div className="max-w-md mx-auto">
+                    <AnimatedSection>
+                        <div className="glass-card p-6 md:p-10 border border-forest-700/50">
+                            <div className="w-24 h-24 bg-forest-800 rounded-full mx-auto mb-6 flex items-center justify-center border-2 border-forest-accent shadow-lg shadow-forest-accent/20">
+                                <UserIcon className="w-12 h-12 text-forest-accent" />
+                            </div>
+                            <h2 className="text-3xl font-bold text-white mb-2 text-center">Welcome Back</h2>
+                            <p className="text-forest-300 mb-8 text-center text-lg">{user.name}</p>
+
+                            <div className="space-y-4 mb-8">
+                                <div className="bg-forest-900/50 p-5 rounded-2xl border border-forest-700/50 flex justify-between items-center">
+                                    <div>
+                                        <p className="text-xs text-forest-400 uppercase tracking-wider mb-1">Email</p>
+                                        <p className="text-white font-medium truncate max-w-[200px]">{user.email}</p>
+                                    </div>
+                                    <Mail className="w-5 h-5 text-forest-500" />
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="bg-forest-900/50 p-5 rounded-2xl border border-forest-700/50">
+                                        <p className="text-xs text-forest-400 uppercase tracking-wider mb-1">Plan</p>
+                                        <p className="text-forest-accent font-bold text-lg">{user.plan || 'Free'}</p>
+                                    </div>
+                                    <div className="bg-forest-900/50 p-5 rounded-2xl border border-forest-700/50">
+                                        <p className="text-xs text-forest-400 uppercase tracking-wider mb-1">Status</p>
+                                        <p className="text-green-400 font-bold text-lg">Active</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <button
+                                onClick={() => {
+                                    logout();
+                                    onNavigate('main');
+                                }}
+                                className="w-full py-4 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold rounded-xl transition-colors border border-red-500/20 flex items-center justify-center gap-2"
+                            >
+                                <Lock className="w-4 h-4" />
+                                Logout
+                            </button>
+                        </div>
+                    </AnimatedSection>
+                </div>
+            </div>
+        </section>
+    );
+};
+
 const LoginPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigate }) => {
     const [email, setEmail] = React.useState('');
     const [password, setPassword] = React.useState('');
-    const [status, setStatus] = React.useState<'idle' | 'loggingIn' | 'error'>('idle');
+    const [showPassword, setShowPassword] = React.useState(false);
+    const [status, setStatus] = React.useState<'idle' | 'loggingIn' | 'error' | 'resetting'>('idle');
     const [errorMsg, setErrorMsg] = React.useState('');
     const [walletAddress, setWalletAddress] = React.useState<string | null>(null);
+    const [showForgotPassword, setShowForgotPassword] = React.useState(false);
+    const [resetEmail, setResetEmail] = React.useState('');
 
     const { login, loginWithWallet, error } = useAuth();
 
@@ -1294,7 +1218,7 @@ const LoginPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigat
         try {
             const success = await loginWithWallet(address);
             if (success) {
-                onNavigate('main');
+                onNavigate('profile');
             } else {
                 setErrorMsg('Failed to authenticate with wallet');
                 setStatus('error');
@@ -1306,7 +1230,7 @@ const LoginPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigat
     };
 
     const handleSocialLoginSuccess = (user: any) => {
-        onNavigate('main');
+        onNavigate('profile');
     };
 
     const handleSocialLoginError = (error: string) => {
@@ -1322,7 +1246,7 @@ const LoginPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigat
         try {
             const success = await login(email, password);
             if (success) {
-                onNavigate('main');
+                onNavigate('profile');
             } else {
                 setStatus('error');
                 setErrorMsg(error || 'Invalid email or password.');
@@ -1330,6 +1254,26 @@ const LoginPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigat
         } catch (err: any) {
             setStatus('error');
             setErrorMsg(err.message || 'Login failed');
+        }
+    };
+
+    const handleForgotPassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!resetEmail) {
+            setErrorMsg('Please enter your email address.');
+            return;
+        }
+        setStatus('resetting');
+        setErrorMsg('');
+
+        const result = await resetPassword(resetEmail);
+        if (result.success) {
+            setStatus('idle');
+            setShowForgotPassword(false);
+            alert('Password reset email sent! Please check your inbox.');
+        } else {
+            setStatus('error');
+            setErrorMsg(result.error || 'Failed to send reset email.');
         }
     };
 
@@ -1349,73 +1293,119 @@ const LoginPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigat
                             </button>
 
                             <div className="text-center mb-8">
-                                <h1 className="text-4xl font-bold text-white mb-2">Login</h1>
+                                <h1 className="text-4xl font-bold text-white mb-2">
+                                    {showForgotPassword ? 'Reset Password' : 'Login'}
+                                </h1>
                             </div>
 
-                            <form onSubmit={handleLogin} className="space-y-6">
-                                <div>
-                                    <label htmlFor="login-email" className="block text-sm font-medium text-white/90 mb-2">Email</label>
-                                    <input
-                                        type="email"
-                                        id="login-email"
-                                        value={email}
-                                        onChange={e => setEmail(e.target.value)}
-                                        required
-                                        className="w-full px-4 py-3 bg-white/20 backdrop-blur-sm border-b-2 border-white/30 text-white placeholder-white/50 focus:outline-none focus:border-white/60 transition-colors"
-                                        placeholder="Enter your email"
-                                    />
-                                </div>
-                                <div>
-                                    <label htmlFor="login-password" className="block text-sm font-medium text-white/90 mb-2">Password</label>
-                                    <input
-                                        type="password"
-                                        id="login-password"
-                                        value={password}
-                                        onChange={e => setPassword(e.target.value)}
-                                        required
-                                        className="w-full px-4 py-3 bg-white/20 backdrop-blur-sm border-b-2 border-white/30 text-white placeholder-white/50 focus:outline-none focus:border-white/60 transition-colors"
-                                        placeholder="Enter your password"
-                                    />
-                                </div>
-
-                                <div className="flex items-center justify-between text-sm">
-                                    <label className="flex items-center text-white/80 cursor-pointer">
-                                        <input type="checkbox" className="mr-2 rounded" />
-                                        Remember me
-                                    </label>
-                                    <a href="#" className="text-white/80 hover:text-white transition-colors">Forgot Password?</a>
-                                </div>
-
-                                <div>
+                            {showForgotPassword ? (
+                                <form onSubmit={handleForgotPassword} className="space-y-6">
+                                    <div>
+                                        <label htmlFor="reset-email" className="block text-sm font-medium text-white/90 mb-2">Email Address</label>
+                                        <input
+                                            type="email"
+                                            id="reset-email"
+                                            value={resetEmail}
+                                            onChange={e => setResetEmail(e.target.value)}
+                                            required
+                                            className="w-full px-4 py-3 bg-white/20 backdrop-blur-sm border-b-2 border-white/30 text-white placeholder-white/50 focus:outline-none focus:border-white/60 transition-colors"
+                                            placeholder="Enter your email"
+                                        />
+                                    </div>
                                     <button
                                         type="submit"
-                                        disabled={status === 'loggingIn'}
+                                        disabled={status === 'resetting'}
                                         className="w-full flex justify-center items-center font-bold px-6 py-3 rounded-lg text-white bg-gray-900/80 hover:bg-gray-900 transition-colors disabled:bg-gray-600/50 shadow-lg"
                                     >
-                                        {status === 'loggingIn' && <Loader className="animate-spin -ml-1 mr-3 h-5 w-5" />}
-                                        {status === 'loggingIn' ? 'Signing In...' : 'Login'}
+                                        {status === 'resetting' ? 'Sending...' : 'Send Reset Link'}
                                     </button>
-                                </div>
-                                {status === 'error' && <p className="text-red-300 text-center font-medium">{errorMsg}</p>}
-                            </form>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowForgotPassword(false)}
+                                        className="w-full text-white/70 hover:text-white text-sm"
+                                    >
+                                        Back to Login
+                                    </button>
+                                </form>
+                            ) : (
+                                <form onSubmit={handleLogin} className="space-y-6">
+                                    <div>
+                                        <label htmlFor="login-email" className="block text-sm font-medium text-white/90 mb-2">Email</label>
+                                        <input
+                                            type="email"
+                                            id="login-email"
+                                            value={email}
+                                            onChange={e => setEmail(e.target.value)}
+                                            required
+                                            className="w-full px-4 py-3 bg-white/20 backdrop-blur-sm border-b-2 border-white/30 text-white placeholder-white/50 focus:outline-none focus:border-white/60 transition-colors"
+                                            placeholder="Enter your email"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label htmlFor="login-password" className="block text-sm font-medium text-white/90 mb-2">Password</label>
+                                        <div className="relative">
+                                            <input
+                                                type={showPassword ? "text" : "password"}
+                                                id="login-password"
+                                                value={password}
+                                                onChange={e => setPassword(e.target.value)}
+                                                required
+                                                className="w-full px-4 py-3 bg-white/20 backdrop-blur-sm border-b-2 border-white/30 text-white placeholder-white/50 focus:outline-none focus:border-white/60 transition-colors pr-10"
+                                                placeholder="Enter your password"
+                                            />
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowPassword(!showPassword)}
+                                                className="absolute right-3 top-1/2 -translate-y-1/2 text-white/60 hover:text-white"
+                                            >
+                                                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                            </button>
+                                        </div>
+                                    </div>
 
-                            <div className="mt-6 text-center">
-                                <p className="text-sm text-white/70">
-                                    Don't have an account? <a href="#" onClick={(e) => { e.preventDefault(); onNavigate('signup'); }} className="text-white hover:underline font-medium">Register</a>
-                                </p>
-                            </div>
+                                    <div className="flex items-center justify-between text-sm">
+                                        <label className="flex items-center text-white/80 cursor-pointer">
+                                            <input type="checkbox" className="mr-2 rounded" />
+                                            Remember me
+                                        </label>
+                                        <button type="button" onClick={() => setShowForgotPassword(true)} className="text-white/80 hover:text-white transition-colors">Forgot Password?</button>
+                                    </div>
 
-                            {/* Social login section */}
-                            <div className="mt-8 pt-6 border-t border-white/20">
-                                <h3 className="text-center text-xs font-semibold text-white/60 uppercase tracking-wider mb-4">Or continue with</h3>
-                                <SocialLogin onSuccess={handleSocialLoginSuccess} onError={handleSocialLoginError} />
-                            </div>
+                                    <div>
+                                        <button
+                                            type="submit"
+                                            disabled={status === 'loggingIn'}
+                                            className="w-full flex justify-center items-center font-bold px-6 py-3 rounded-lg text-white bg-gray-900/80 hover:bg-gray-900 transition-colors disabled:bg-gray-600/50 shadow-lg"
+                                        >
+                                            {status === 'loggingIn' && <Loader className="animate-spin -ml-1 mr-3 h-5 w-5" />}
+                                            {status === 'loggingIn' ? 'Signing In...' : 'Login'}
+                                        </button>
+                                    </div>
+                                    {status === 'error' && <p className="text-red-300 text-center font-medium">{errorMsg}</p>}
+                                </form>
+                            )}
 
-                            {/* Blockchain login section */}
-                            <div className="mt-8 pt-6 border-t border-white/20">
-                                <h3 className="text-center text-xs font-semibold text-white/60 uppercase tracking-wider mb-4">Or login with blockchain</h3>
-                                <WalletConnect onConnect={handleWalletConnect} />
-                            </div>
+                            {!showForgotPassword && (
+                                <>
+                                    <div className="mt-6 text-center">
+                                        <p className="text-sm text-white/70">
+                                            Don't have an account? <a href="#" onClick={(e) => { e.preventDefault(); onNavigate('signup'); }} className="text-white hover:underline font-medium">Register</a>
+                                        </p>
+                                    </div>
+
+                                    {/* Social login section */}
+                                    <div className="mt-8 pt-6 border-t border-white/20">
+                                        <h3 className="text-center text-xs font-semibold text-white/60 uppercase tracking-wider mb-4">Or continue with</h3>
+                                        <SocialLogin onSuccess={handleSocialLoginSuccess} onError={handleSocialLoginError} />
+                                    </div>
+
+                                    {/* Blockchain login section */}
+                                    <div className="mt-8 pt-6 border-t border-white/20">
+                                        <h3 className="text-center text-xs font-semibold text-white/60 uppercase tracking-wider mb-4">Or login with blockchain</h3>
+                                        <WalletConnect onConnect={handleWalletConnect} />
+                                    </div>
+                                </>
+                            )}
                         </div>
                     </AnimatedSection>
                 </div>
@@ -1429,6 +1419,7 @@ const SignupPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNaviga
     const [name, setName] = React.useState('');
     const [email, setEmail] = React.useState('');
     const [password, setPassword] = React.useState('');
+    const [showPassword, setShowPassword] = React.useState(false);
     const [status, setStatus] = React.useState<'idle' | 'signingUp' | 'error'>('idle');
     const [errorMsg, setErrorMsg] = React.useState('');
 
@@ -1442,7 +1433,7 @@ const SignupPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNaviga
         try {
             const success = await signup(email, password, name);
             if (success) {
-                onNavigate('main');
+                onNavigate('profile');
             } else {
                 setStatus('error');
                 setErrorMsg(error || 'Signup failed. Email may already exist.');
@@ -1475,7 +1466,23 @@ const SignupPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNaviga
                                 </div>
                                 <div>
                                     <label htmlFor="signup-password" className="block text-sm font-medium text-gray-700">Password</label>
-                                    <input type="password" id="signup-password" value={password} onChange={e => setPassword(e.target.value)} required className="mt-1 block w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white/50 backdrop-blur-sm" />
+                                    <div className="relative">
+                                        <input
+                                            type={showPassword ? "text" : "password"}
+                                            id="signup-password"
+                                            value={password}
+                                            onChange={e => setPassword(e.target.value)}
+                                            required
+                                            className="mt-1 block w-full px-4 py-3 border border-gray-200 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white/50 backdrop-blur-sm pr-10"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                                        >
+                                            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                        </button>
+                                    </div>
                                 </div>
                                 <div>
                                     <button
@@ -1512,6 +1519,8 @@ const App: React.FC = () => {
         window.scrollTo(0, 0);
     };
 
+    const [isFeedbackOpen, setIsFeedbackOpen] = React.useState(false);
+
     const renderPage = () => {
         switch (currentPage) {
             case 'services':
@@ -1524,6 +1533,10 @@ const App: React.FC = () => {
                 return <LoginPage onNavigate={handleNavigate} />;
             case 'signup':
                 return <SignupPage onNavigate={handleNavigate} />;
+            case 'profile':
+                return <ProfilePage onNavigate={handleNavigate} />;
+            case 'admin':
+                return <AdminPage onNavigate={handleNavigate} />;
             case 'main':
             default:
                 return <MainPage onNavigate={handleNavigate} />;
@@ -1534,11 +1547,27 @@ const App: React.FC = () => {
         <AuthProvider>
             <div className="flex flex-col min-h-screen relative">
                 <AnimatedBackground />
-                <Header onNavigate={handleNavigate} />
+                {currentPage !== 'admin' && <Header onNavigate={handleNavigate} />}
                 <main className="flex-grow z-10">
                     {renderPage()}
                 </main>
-                <Footer onNavigate={handleNavigate} />
+                {currentPage !== 'admin' && <Footer onNavigate={handleNavigate} />}
+
+                {/* Feedback Button */}
+                {currentPage !== 'admin' && (
+                    <button
+                        onClick={() => setIsFeedbackOpen(true)}
+                        className="fixed bottom-6 right-6 z-50 bg-forest-accent text-forest-900 font-bold py-3 px-6 rounded-full shadow-lg hover:bg-white transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
+                    >
+                        <MessageCircle className="w-5 h-5" />
+                        Feedback
+                    </button>
+                )}
+
+                <FeedbackModal
+                    isOpen={isFeedbackOpen}
+                    onClose={() => setIsFeedbackOpen(false)}
+                />
             </div>
         </AuthProvider>
     );

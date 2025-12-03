@@ -85,6 +85,38 @@ export interface Database {
                     created_at?: string;
                 };
             };
+            feedback: {
+                Row: {
+                    id: string;
+                    user_id: string | null;
+                    message: string;
+                    rating: number | null;
+                    created_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    user_id?: string | null;
+                    message: string;
+                    rating?: number | null;
+                    created_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    user_id?: string | null;
+                    message?: string;
+                    rating?: number | null;
+                    created_at?: string;
+                };
+            };
+        };
+        Views: {
+            [_ in never]: never;
+        };
+        Functions: {
+            [_ in never]: never;
+        };
+        Enums: {
+            [_ in never]: never;
         };
     };
 }
@@ -113,5 +145,15 @@ export interface ContactMessage {
     name: string;
     email: string;
     message: string;
+    createdAt: string;
+}
+
+export interface Feedback {
+    id: string;
+    userId: string | null;
+    userName?: string;
+    userEmail?: string;
+    message: string;
+    rating?: number;
     createdAt: string;
 }

@@ -103,3 +103,23 @@ create trigger update_users_updated_at
   before update on users
   for each row
   execute function update_updated_at_column();
+
+-- Create feedback table
+create table if not exists feedback (
+  id uuid primary key default uuid_generate_v4(),
+  user_id text references users(id) on delete set null,
+  message text not null,
+  rating integer,
+  created_at timestamp with time zone default now()
+);
+
+-- RLS Policies for feedback table
+create policy "Anyone can insert feedback"
+  on feedback for insert
+  with check (true);
+
+create policy "Authenticated users can view feedback"
+  on feedback for select
+  using (auth.role() = 'authenticated');
+
+create index if not exists idx_feedback_created_at on feedback(created_at desc);

@@ -5,6 +5,7 @@ import {
     signInWithEmailAndPassword as firebaseSignInWithEmail,
     createUserWithEmailAndPassword as firebaseCreateUserWithEmail,
     signOut as firebaseSignOut,
+    sendPasswordResetEmail as firebaseSendPasswordResetEmail,
     onAuthStateChanged,
     User as FirebaseUser
 } from 'firebase/auth';
@@ -251,6 +252,26 @@ export async function signOut(): Promise<void> {
         // We don't need to sign out of Supabase because we aren't using Supabase Auth sessions anymore
     } catch (error) {
         console.error('Sign out error:', error);
+    }
+}
+
+/**
+ * Send password reset email
+ */
+export async function resetPassword(email: string): Promise<AuthResult> {
+    try {
+        await firebaseSendPasswordResetEmail(auth, email);
+        return { success: true };
+    } catch (error: any) {
+        console.error('Reset password error:', error);
+        let errorMessage = error.message || 'Failed to send reset email';
+        if (error.code === 'auth/user-not-found') {
+            errorMessage = 'No account found with this email.';
+        }
+        return {
+            success: false,
+            error: errorMessage
+        };
     }
 }
 
