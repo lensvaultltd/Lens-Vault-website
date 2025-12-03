@@ -186,6 +186,18 @@ const Header: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigate }
                         Contact
                         <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-forest-accent transition-all group-hover:w-full"></span>
                     </a>
+
+                    {/* Profile Icon for Logged In Users */}
+                    {user && (
+                        <button
+                            onClick={() => handleNavigate('profile')}
+                            className="flex items-center gap-2 px-4 py-2 bg-forest-800/50 hover:bg-forest-accent hover:text-forest-900 rounded-full transition-all border border-forest-700/50 group"
+                            title="My Profile"
+                        >
+                            <UserIcon className="w-5 h-5" />
+                            <span className="text-sm font-bold">{user.name.split(' ')[0]}</span>
+                        </button>
+                    )}
                 </nav>
 
                 {/* Mobile Menu Button */}
@@ -200,6 +212,12 @@ const Header: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigate }
                 <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('services'); }} className="text-3xl font-bold text-white hover:text-forest-accent transition-colors">Services</a>
                 <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('pricing'); }} className="text-3xl font-bold text-white hover:text-forest-accent transition-colors">Pricing</a>
                 <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('contact'); }} className="text-3xl font-bold text-white hover:text-forest-accent transition-colors">Contact</a>
+                {user && (
+                    <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('profile'); }} className="text-3xl font-bold text-forest-accent hover:text-white transition-colors flex items-center gap-3">
+                        <UserIcon className="w-8 h-8" />
+                        My Profile
+                    </a>
+                )}
             </div>
         </header>
     );
@@ -346,92 +364,109 @@ const HeroSection: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
             <div className="absolute top-0 left-1/4 w-96 h-96 bg-forest-accent/10 rounded-full blur-3xl -z-10"></div>
             <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-forest-accent/5 rounded-full blur-3xl -z-10"></div>
 
-            {user ? (
-                <div className="container mx-auto px-6 flex flex-col items-center text-center relative z-10">
-                    <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight tracking-tight mb-6">
-                        Welcome Back, <span className="text-forest-accent">{user.name}</span>
-                    </h1>
-                    <p className="text-lg text-forest-300 max-w-2xl leading-relaxed font-light mb-10">
-                        Your digital fortress is active. Manage your security settings and view your protection status from your dashboard.
-                    </p>
-                    <button
-                        onClick={() => onNavigate('profile')}
-                        className="px-10 py-4 bg-forest-accent hover:bg-white hover:text-forest-900 text-forest-900 font-bold rounded-full transition-all duration-300 transform hover:scale-105 shadow-[0_0_20px_rgba(14,165,233,0.4)]"
-                    >
-                        Go to Dashboard
-                    </button>
-                </div>
-            ) : (
-                <div className="container mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center relative z-10">
-                    {/* Left Content */}
-                    <div className="text-left space-y-8">
-                        <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight tracking-tight">
+            <div className="container mx-auto px-6">
+                {user ? (
+                    // Logged In View: Centered Hero Content
+                    <div className="flex flex-col items-center text-center max-w-4xl mx-auto relative z-10 animate-fade-in-up">
+                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-forest-800/50 border border-forest-700 mb-8">
+                            <ShieldCheck className="w-5 h-5 text-green-400" />
+                            <span className="text-forest-200 text-sm font-medium">Protected by Lens Vault</span>
+                        </div>
+                        <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight tracking-tight mb-8">
                             Lens Vault <br />
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-forest-accent to-white">Build Your Mind</span>
                         </h1>
-                        <p className="text-lg text-forest-300 max-w-xl leading-relaxed font-light">
+                        <p className="text-xl text-forest-300 max-w-2xl leading-relaxed font-light mb-10">
                             Secure your digital presence with advanced cybersecurity solutions. Proof-backed protection for individuals and businesses.
                         </p>
-                        <button
-                            onClick={() => onNavigate('services')}
-                            className="mt-8 px-10 py-4 rounded-full border border-white/30 text-white font-medium hover:bg-white hover:text-forest-900 transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]"
-                        >
-                            Get Started
-                        </button>
-                    </div>
-
-                    {/* Right Login Card */}
-                    <div className="flex justify-center lg:justify-end">
-                        <div className="w-full max-w-md">
-                            <h2 className="text-4xl font-bold text-white mb-10 text-center tracking-tight">Member Login</h2>
-                            <form onSubmit={handleLogin} className="space-y-6">
-                                <div className="relative group">
-                                    <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-forest-400 group-focus-within:text-forest-accent transition-colors" />
-                                    <input
-                                        type="email"
-                                        placeholder="Enter your email"
-                                        value={email}
-                                        onChange={(e) => setEmail(e.target.value)}
-                                        className="w-full bg-transparent border border-forest-600 rounded-full py-4 pl-14 pr-6 text-white placeholder-forest-500 focus:outline-none focus:border-forest-accent focus:ring-1 focus:ring-forest-accent transition-all"
-                                    />
-                                </div>
-                                <div className="relative group">
-                                    <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-forest-400 group-focus-within:text-forest-accent transition-colors" />
-                                    <input
-                                        type="password"
-                                        placeholder="Enter your password"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
-                                        className="w-full bg-transparent border border-forest-600 rounded-full py-4 pl-14 pr-6 text-white placeholder-forest-500 focus:outline-none focus:border-forest-accent focus:ring-1 focus:ring-forest-accent transition-all"
-                                    />
-                                </div>
-
-                                <div className="flex items-center justify-between text-sm text-forest-300 px-2">
-                                    <label className="flex items-center gap-2 cursor-pointer hover:text-white transition-colors">
-                                        <input type="checkbox" className="rounded border-forest-600 bg-transparent text-forest-accent focus:ring-offset-0 focus:ring-forest-accent" />
-                                        Remember me
-                                    </label>
-                                    <a href="#" className="hover:text-white transition-colors">Forgot Password?</a>
-                                </div>
-
-                                {errorMsg && <p className="text-red-400 text-sm text-center bg-red-500/10 py-2 rounded-lg border border-red-500/20">{errorMsg}</p>}
-
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    className="w-full py-4 bg-gradient-to-r from-forest-accent to-forest-accentHover hover:shadow-[0_0_20px_rgba(14,165,233,0.4)] text-white font-bold rounded-full transition-all transform hover:scale-[1.02] mt-4"
-                                >
-                                    {loading ? 'Logging in...' : 'Login'}
-                                </button>
-
-                                <p className="text-center text-sm text-forest-400 mt-8">
-                                    Not a member? <a href="#" onClick={(e) => { e.preventDefault(); onNavigate('signup'); }} className="text-white font-semibold hover:underline ml-1">Sign up now</a>
-                                </p>
-                            </form>
+                        <div className="flex flex-col sm:flex-row gap-4">
+                            <button
+                                onClick={() => onNavigate('services')}
+                                className="px-10 py-4 rounded-full bg-forest-accent text-forest-900 font-bold hover:bg-white transition-all duration-300 shadow-[0_0_20px_rgba(14,165,233,0.4)] hover:shadow-[0_0_30px_rgba(14,165,233,0.6)]"
+                            >
+                                Explore Services
+                            </button>
+                            <button
+                                onClick={() => onNavigate('profile')}
+                                className="px-10 py-4 rounded-full border border-forest-600 text-white font-medium hover:bg-forest-800 transition-all duration-300"
+                            >
+                                Go to Profile
+                            </button>
                         </div>
                     </div>
-                </div>
-            )}
+                ) : (
+                    // Logged Out View: Split Layout with Login Form
+                    <div className="grid lg:grid-cols-2 gap-12 items-center relative z-10">
+                        {/* Left Content */}
+                        <div className="text-left space-y-8">
+                            <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight tracking-tight">
+                                Lens Vault <br />
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-forest-accent to-white">Build Your Mind</span>
+                            </h1>
+                            <p className="text-lg text-forest-300 max-w-xl leading-relaxed font-light">
+                                Secure your digital presence with advanced cybersecurity solutions. Proof-backed protection for individuals and businesses.
+                            </p>
+                            <button
+                                onClick={() => onNavigate('services')}
+                                className="mt-8 px-10 py-4 rounded-full border border-white/30 text-white font-medium hover:bg-white hover:text-forest-900 transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+                            >
+                                Get Started
+                            </button>
+                        </div>
+
+                        {/* Right Login Card */}
+                        <div className="flex justify-center lg:justify-end">
+                            <div className="w-full max-w-md">
+                                <h2 className="text-4xl font-bold text-white mb-10 text-center tracking-tight">Member Login</h2>
+                                <form onSubmit={handleLogin} className="space-y-6">
+                                    <div className="relative group">
+                                        <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-forest-400 group-focus-within:text-forest-accent transition-colors" />
+                                        <input
+                                            type="email"
+                                            placeholder="Enter your email"
+                                            value={email}
+                                            onChange={(e) => setEmail(e.target.value)}
+                                            className="w-full bg-transparent border border-forest-600 rounded-full py-4 pl-14 pr-6 text-white placeholder-forest-500 focus:outline-none focus:border-forest-accent focus:ring-1 focus:ring-forest-accent transition-all"
+                                        />
+                                    </div>
+                                    <div className="relative group">
+                                        <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-forest-400 group-focus-within:text-forest-accent transition-colors" />
+                                        <input
+                                            type="password"
+                                            placeholder="Enter your password"
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                            className="w-full bg-transparent border border-forest-600 rounded-full py-4 pl-14 pr-6 text-white placeholder-forest-500 focus:outline-none focus:border-forest-accent focus:ring-1 focus:ring-forest-accent transition-all"
+                                        />
+                                    </div>
+
+                                    <div className="flex items-center justify-between text-sm text-forest-300 px-2">
+                                        <label className="flex items-center gap-2 cursor-pointer hover:text-white transition-colors">
+                                            <input type="checkbox" className="rounded border-forest-600 bg-transparent text-forest-accent focus:ring-offset-0 focus:ring-forest-accent" />
+                                            Remember me
+                                        </label>
+                                        <a href="#" className="hover:text-white transition-colors">Forgot Password?</a>
+                                    </div>
+
+                                    {errorMsg && <p className="text-red-400 text-sm text-center bg-red-500/10 py-2 rounded-lg border border-red-500/20">{errorMsg}</p>}
+
+                                    <button
+                                        type="submit"
+                                        disabled={loading}
+                                        className="w-full py-4 bg-gradient-to-r from-forest-accent to-forest-accentHover hover:shadow-[0_0_20px_rgba(14,165,233,0.4)] text-white font-bold rounded-full transition-all transform hover:scale-[1.02] mt-4"
+                                    >
+                                        {loading ? 'Logging in...' : 'Login'}
+                                    </button>
+
+                                    <p className="text-center text-sm text-forest-400 mt-8">
+                                        Not a member? <a href="#" onClick={(e) => { e.preventDefault(); onNavigate('signup'); }} className="text-white font-semibold hover:underline ml-1">Sign up now</a>
+                                    </p>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
         </section>
     );
 };
