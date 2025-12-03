@@ -17,7 +17,7 @@ import {
     Menu, X, CheckCircle, Globe, Tag, ShieldAlert, Eye, EyeOff, Instagram as InstagramIcon, Twitter as TwitterIcon,
     Linkedin as LinkedInIcon, MessageCircle
 } from 'lucide-react';
-import { resetPassword } from './src/services/authService';
+import { resetPassword, changePassword, deleteAccount } from './src/services/authService';
 import { FeedbackModal } from './src/components/FeedbackModal';
 import AdminPage from './src/pages/AdminPage';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
