@@ -22,7 +22,7 @@ declare global {
 // --- SVG Icon Components ---
 
 const LogoIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <img src="/logo.png" alt="Lens Vault Logo" className={className} />
+    <img src="/assets/logo.png" alt="Lens Vault Logo" className={className} />
 );
 
 
