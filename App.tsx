@@ -8,6 +8,10 @@ import * as dbService from './src/services/databaseService';
 import { SocialLogin } from './src/components/SocialLogin';
 import AnimatedBackground from './src/components/AnimatedBackground';
 import type { User } from './src/types/database.types';
+import {
+    ShieldCheck, Users, Briefcase, Star, Crown, Lock, FileText, User as UserIcon, Mail, Loader,
+    Menu, X, CheckCircle, Globe, Tag, ShieldAlert
+} from 'lucide-react';
 
 declare global {
     interface Window {
@@ -21,66 +25,7 @@ const LogoIcon: React.FC<{ className?: string }> = ({ className }) => (
     <img src="/logo.png" alt="Lens Vault Logo" className={className} />
 );
 
-const ShieldCheckIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.286zm0 13.036h.008v.008h-.008v-.008z" />
-    </svg>
-);
 
-const UserGroupIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m-7.5-2.962c.57-1.023-.194-1.37-1.022-1.37-1.42 0-2.844.652-3.818 1.82M12 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m-7.5-2.962c.57-1.023-.194-1.37-1.022-1.37-1.42 0-2.844.652-3.818 1.82M15 14.632a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m-7.5-2.962c.57-1.023-.194-1.37-1.022-1.37-1.42 0-2.844.652-3.818 1.82M9 12.75a3 3 0 110-6 3 3 0 010 6z" />
-    </svg>
-);
-
-const BriefcaseIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 14.15v4.075c0 1.313-.964 2.39-2.206 2.515-1.14.12-2.213-.48-2.9-1.423-.623-.83-1.63 1.42-2.9 1.423-1.269 0-2.277-1.02-2.9-1.423-.687.943-1.76 1.543-2.9 1.423-1.242-.125-2.206-1.202-2.206-2.515V14.15M15.75 18v-4.875c0-1.06-.86-1.925-1.925-1.925h-3.65C9.09 11.25 8.25 12.115 8.25 13.125V18m12-4.875c0-1.06-.86-1.925-1.925-1.925h-3.65c-1.065 0-1.925.865-1.925 1.925V18" />
-    </svg>
-);
-
-const StarIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
-    </svg>
-);
-
-const CrownIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15.362 5.214A8.252 8.252 0 0112 21 8.25 8.25 0 018.638 5.214l2.11-1.242a.225.225 0 01.252 0l2.11 1.242zM12 15.75a3.75 3.75 0 000-7.5 3.75 3.75 0 000 7.5z" />
-    </svg>
-);
-
-const LockClosedIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-    </svg>
-);
-
-const DocumentTextIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-    </svg>
-);
-
-const UserIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-    </svg>
-);
-
-const EnvelopeIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-    </svg>
-);
-
-const SpinnerIcon: React.FC = () => (
-    <svg className="animate-spin -ml-1 mr-3 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-    </svg>
-);
 
 const WhatsAppIcon: React.FC<{ className?: string }> = ({ className }) => (
     <svg className={className} fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M16.75 13.96c.25.13.43.2.5.33.08.13.12.28.12.48 0 .2-.04.38-.12.53s-.17.28-.3.4c-.13.13-.28.23-.45.33-.18.1-.38.16-.6.2-.23.04-.48.06-.75.06-.35 0-.68-.04-1-.13-.33-.08-.65-.2-1-.35-.33-.16-.65-.34-1-.54-.34-.2-.68-.44-1-.7-.33-.25-.63-.54-.9-.85-.28-.3-.54-.64-.78-1-.24-.38-.44-.78-.6-1.2-.18-.43-.3-.88-.38-1.35-.08-.48-.12-1-.12-1.5 0-.43.04-.83.12-1.2.08-.38.2-.72.38-1.04.18-.3.4-.58.68-.8.28-.2.6-.36.96-.46.35-.1.74-.16 1.15-.16.2 0 .4-.02.6-.02.23 0 .43.02.6.05.18.03.35.1.48.18.13.08.25.18.34.3.1.12.17.25.22.4.05.15.08.3.08.45 0 .15-.03.3-.08.43-.05.13-.12.25-.2.35-.08.1-.18.18-.28.24-.1.06-.22.1-.34.13-.12.03-.25.05-.38.05-.18 0-.35-.03-.5-.08-.15-.05-.3-.08-.4-.08-.08 0-.15.02-.23.05-.08.03-.15.08-.2.13-.05.05-.1.1-.14.18-.04.08-.06.15-.06.22 0 .06.02.13.05.2.03.08.08.15.14.22.06.08.13.14.2.2.08.08.17.14.25.2.1.08.2.14.3.2.08.06.18.1.28.14.1.04.2.06.3.06.15 0 .3-.03.4-.08.1-.05.2-.12.28-.2.08-.08.14-.17.2-.25.05-.08.08-.18.08-.28 0-.1-.02-.2-.05-.28-.03-.08-.08-.15-.14-.2-.06-.05-.12-.1-.2-.13-.08-.03-.15-.05-.23-.05-.1 0-.2.02-.3.06-.1.04-.2.1-.3.18-.1.08-.18.15-.25.2-.08.05-.14.1-.2.13-.06.03-.1.05-.14.05-.03 0-.05-.02-.06-.03-.02-.02-.03-.04-.03-.06 0-.05.02-.1.06-.14.04-.04.1-.1.15-.15.05-.05.1-.1.15-.14.05-.04.1-.08.14-.1.04-.03.1-.05.14-.06.04-.02.1-.03.14-.03.18 0 .34.03.5.1zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z" /></svg>
@@ -98,44 +43,7 @@ const LinkedInIcon: React.FC<{ className?: string }> = ({ className }) => (
     <svg className={className} fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 11-4.125 0 2.062 2.062 0 014.125 0zM7.142 20.452H3.555V9h3.587v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.225 0z" /></svg>
 );
 
-const CheckCircleIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg className={className} xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-);
 
-const GlobeAltIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9 9 0 01-9-9 9 9 0 019-9m9 9a9 9 0 01-9 9m-9-9h18m-9 9a9 9 0 000-18m0 18v-6.39A9 9 0 003.61 15m16.78-3a9 9 0 01-16.78 0" />
-    </svg>
-);
-
-const PriceTagIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9.568 3H5.25A2.25 2.25 0 003 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 005.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 009.568 3z" />
-    </svg>
-);
-
-const ShieldExclamationIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.286zm0 13.036h.008v.008h-.008v-.008z" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M12 15.75h.007v.008H12v-.008z" />
-    </svg>
-);
-
-
-
-const MenuIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-    </svg>
-);
-
-const XIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-    </svg>
-);
 
 // --- Custom Hooks ---
 const useAnimateOnScroll = (options: IntersectionObserverInit = { threshold: 0.1 }) => {
@@ -210,7 +118,7 @@ const WalletConnect: React.FC<{ onConnect: (address: string) => void }> = ({ onC
                         onClick={connectWallet}
                         className="flex items-center gap-2 px-6 py-3 bg-orange-600 text-white font-bold rounded-lg hover:bg-orange-700 transition-colors shadow-md"
                     >
-                        <ShieldCheckIcon className="w-6 h-6" />
+                        <ShieldCheck className="w-6 h-6" />
                         Connect Wallet to Login
                     </button>
                 ) : (
@@ -220,14 +128,14 @@ const WalletConnect: React.FC<{ onConnect: (address: string) => void }> = ({ onC
                         rel="noopener noreferrer"
                         className="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors shadow-md"
                     >
-                        <ShieldExclamationIcon className="w-6 h-6" />
+                        <ShieldAlert className="w-6 h-6" />
                         Install MetaMask to Login
                     </a>
                 )
             ) : (
                 <div className="flex flex-col items-center gap-2 animate-fade-in">
                     <div className="flex items-center gap-2 px-4 py-2 bg-green-100 text-green-800 rounded-full border border-green-200">
-                        <ShieldCheckIcon className="w-5 h-5" />
+                        <ShieldCheck className="w-5 h-5" />
                         <span className="font-mono text-sm">{account.slice(0, 6)}...{account.slice(-4)}</span>
                     </div>
                     <p className="text-xs text-green-600 font-semibold">Blockchain Verified</p>
@@ -235,7 +143,7 @@ const WalletConnect: React.FC<{ onConnect: (address: string) => void }> = ({ onC
             )}
             {error && (
                 <div className="flex items-center gap-2 text-red-600 text-sm mt-2 bg-red-50 p-2 rounded-md">
-                    <ShieldExclamationIcon className="w-5 h-5" />
+                    <ShieldAlert className="w-5 h-5" />
                     {error}
                 </div>
             )}
@@ -412,7 +320,7 @@ const Header: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigate }
 
                 {/* Mobile Menu Button */}
                 <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden p-2 text-white hover:text-gray-200 focus:outline-none z-50 relative">
-                    {isMenuOpen ? <XIcon className="w-8 h-8" /> : <MenuIcon className="w-8 h-8" />}
+                    {isMenuOpen ? <X className="w-8 h-8" /> : <Menu className="w-8 h-8" />}
                 </button>
             </div>
 
@@ -619,7 +527,7 @@ const HeroSection: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
                             <h2 className="text-4xl font-bold text-white mb-10 text-center tracking-tight">Member Login</h2>
                             <form onSubmit={handleLogin} className="space-y-6">
                                 <div className="relative group">
-                                    <EnvelopeIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-forest-400 group-focus-within:text-forest-accent transition-colors" />
+                                    <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-forest-400 group-focus-within:text-forest-accent transition-colors" />
                                     <input
                                         type="email"
                                         placeholder="Enter your email"
@@ -629,7 +537,7 @@ const HeroSection: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
                                     />
                                 </div>
                                 <div className="relative group">
-                                    <LockClosedIcon className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-forest-400 group-focus-within:text-forest-accent transition-colors" />
+                                    <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-forest-400 group-focus-within:text-forest-accent transition-colors" />
                                     <input
                                         type="password"
                                         placeholder="Enter your password"
@@ -681,7 +589,7 @@ const ServicesSection: React.FC<{ onNavigate: (page: string) => void }> = ({ onN
             <div className="mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
                 <AnimatedSection>
                     <ServiceCard
-                        icon={<ShieldCheckIcon className="w-7 h-7" />}
+                        icon={<ShieldCheck className="w-7 h-7" />}
                         title="For Individuals"
                         description="Secure your personal digital footprint. We protect your online accounts, sensitive data, and personal devices from cyber threats."
                         onNavigate={onNavigate}
@@ -689,7 +597,7 @@ const ServicesSection: React.FC<{ onNavigate: (page: string) => void }> = ({ onN
                 </AnimatedSection>
                 <AnimatedSection>
                     <ServiceCard
-                        icon={<UserGroupIcon className="w-7 h-7" />}
+                        icon={<Users className="w-7 h-7" />}
                         title="For Families"
                         description="Keep your loved ones safe online. Our family package includes parental controls, protection for all household devices, and education on safe internet practices."
                         onNavigate={onNavigate}
@@ -697,7 +605,7 @@ const ServicesSection: React.FC<{ onNavigate: (page: string) => void }> = ({ onN
                 </AnimatedSection>
                 <AnimatedSection>
                     <ServiceCard
-                        icon={<BriefcaseIcon className="w-7 h-7" />}
+                        icon={<Briefcase className="w-7 h-7" />}
                         title="For Businesses"
                         description="Protect your company's assets and reputation. We offer robust solutions including network security, employee training, and compliance management."
                         onNavigate={onNavigate}
@@ -721,7 +629,7 @@ const WhyChooseUsSection: React.FC = () => (
                         <div className="mt-8 space-y-6">
                             <div className="flex items-start gap-4">
                                 <div className="bg-white/20 p-2 rounded-full">
-                                    <CheckCircleIcon className="w-8 h-8 text-white" />
+                                    <CheckCircle className="w-8 h-8 text-white" />
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-xl text-white">Proof-Backed Solutions</h3>
@@ -730,7 +638,7 @@ const WhyChooseUsSection: React.FC = () => (
                             </div>
                             <div className="flex items-start gap-4">
                                 <div className="bg-white/20 p-2 rounded-full">
-                                    <CheckCircleIcon className="w-8 h-8 text-white" />
+                                    <CheckCircle className="w-8 h-8 text-white" />
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-xl text-white">Local Expertise</h3>
@@ -739,7 +647,7 @@ const WhyChooseUsSection: React.FC = () => (
                             </div>
                             <div className="flex items-start gap-4">
                                 <div className="bg-white/20 p-2 rounded-full">
-                                    <CheckCircleIcon className="w-8 h-8 text-white" />
+                                    <CheckCircle className="w-8 h-8 text-white" />
                                 </div>
                                 <div>
                                     <h3 className="font-bold text-xl text-white">Transparent Pricing</h3>
@@ -752,13 +660,13 @@ const WhyChooseUsSection: React.FC = () => (
                 <AnimatedSection className="flex justify-center items-center">
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-4 pt-10">
-                            <FeaturePill icon={<LockClosedIcon className="w-6 h-6" />} text="Data Encryption" />
+                            <FeaturePill icon={<Lock className="w-6 h-6" />} text="Data Encryption" />
                             <FeaturePill icon={<UserIcon className="w-6 h-6" />} text="Identity Protection" />
                         </div>
                         <div className="space-y-4">
-                            <FeaturePill icon={<ShieldCheckIcon className="w-6 h-6" />} text="Threat Monitoring" />
-                            <FeaturePill icon={<GlobeAltIcon className="w-6 h-6" />} text="Network Security" />
-                            <FeaturePill icon={<PriceTagIcon className="w-6 h-6" />} text="Clear Pricing" />
+                            <FeaturePill icon={<ShieldCheck className="w-6 h-6" />} text="Threat Monitoring" />
+                            <FeaturePill icon={<Globe className="w-6 h-6" />} text="Network Security" />
+                            <FeaturePill icon={<Tag className="w-6 h-6" />} text="Clear Pricing" />
                         </div>
                     </div>
                 </AnimatedSection>
@@ -771,7 +679,7 @@ const WhyChooseUsSection: React.FC = () => (
 const Testimonial: React.FC<{ quote: string; author: string; role: string; }> = ({ quote, author, role }) => (
     <div className="glass-card p-6 md:p-8 text-center h-full flex flex-col justify-center border border-forest-700/30">
         <div className="text-yellow-400 flex justify-center gap-1 mb-4">
-            {[...Array(5)].map((_, i) => <StarIcon key={i} className="w-5 h-5 fill-current" />)}
+            {[...Array(5)].map((_, i) => <Star key={i} className="w-5 h-5 text-yellow-400" fill="currentColor" />)}
         </div>
         <p className="text-forest-100 italic mb-6">"{quote}"</p>
         <div>
@@ -874,17 +782,17 @@ const MainPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigate
 const ServicesPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigate }) => {
     const coreServices = [
         {
-            icon: <ShieldCheckIcon className="w-8 h-8" />,
+            icon: <ShieldCheck className="w-8 h-8" />,
             title: "Vulnerability Assessment",
             description: "We take a close look at your accounts, devices, and online presence to identify weak points that put you at risk. From passwords to privacy settings, we show you exactly what needs fixing."
         },
         {
-            icon: <LockClosedIcon className="w-8 h-8" />,
+            icon: <Lock className="w-8 h-8" />,
             title: "Security Audit & Protection Setup",
             description: "We secure everything that matters — your social media, emails, devices, and identity. This includes password manager setup, 2FA across all accounts, device hardening, scam-prevention tools, and brand protection checks. You get a clear before-and-after report showing the improvements made."
         },
         {
-            icon: <DocumentTextIcon className="w-8 h-8" />,
+            icon: <FileText className="w-8 h-8" />,
             title: "Digital Estate Planning",
             description: "We help you organize and protect your online assets for the future. You choose who can access what, how your accounts should be handled, and how private data should be preserved or deleted. It's modern peace of mind for the digital age."
         }
@@ -898,31 +806,31 @@ const ServicesPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavi
             coverage: "1 person"
         },
         {
-            icon: <StarIcon className="w-8 h-8" />,
+            icon: <Star className="w-8 h-8" />,
             title: "Influencer Protection",
             description: "Protection for 1 primary account plus social assistants. Extra monitoring and platform security to protect your brand and online presence.",
             coverage: "1 primary + social assistants"
         },
         {
-            icon: <BriefcaseIcon className="w-8 h-8" />,
+            icon: <Briefcase className="w-8 h-8" />,
             title: "Brand",
             description: "Core team protection with account and device supervision for each staff member. Safeguard your brand reputation and business assets.",
             coverage: "Core team"
         },
         {
-            icon: <UserGroupIcon className="w-8 h-8" />,
+            icon: <Users className="w-8 h-8" />,
             title: "Family Package",
             description: "Comprehensive protection for up to 5 family members. Shared vault and common network security with scaled pricing for families.",
             coverage: "Up to 5 members"
         },
         {
-            icon: <BriefcaseIcon className="w-8 h-8" />,
+            icon: <Briefcase className="w-8 h-8" />,
             title: "Team / SME",
             description: "Protection for small to medium enterprises with up to 10 users. Includes team training, shared security protocols, and economies of scale.",
             coverage: "Up to 10 users"
         },
         {
-            icon: <CrownIcon className="w-8 h-8" />,
+            icon: <Crown className="w-8 h-8" />,
             title: "VIP",
             description: "Premium protection for very important persons. Dedicated security analyst, priority support, and advanced threat intelligence for high-profile individuals.",
             coverage: "1 VIP + support team"
@@ -1044,7 +952,7 @@ const PricingPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
             retainer: "₦65,000",
             setupAmount: 15000000,
             retainerAmount: 6500000,
-            icon: <ShieldCheckIcon className="w-6 h-6" />,
+            icon: <ShieldCheck className="w-6 h-6" />,
             features: [
                 "Vulnerability Assessment",
                 "Personal Device Security",
@@ -1060,7 +968,7 @@ const PricingPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
             retainer: "₦85,000",
             setupAmount: 20000000,
             retainerAmount: 8500000,
-            icon: <StarIcon className="w-6 h-6" />,
+            icon: <Star className="w-6 h-6" />,
             features: [
                 "Everything in Individual",
                 "Social Media Hardening",
@@ -1076,7 +984,7 @@ const PricingPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
             retainer: "₦160,000",
             setupAmount: 45000000,
             retainerAmount: 16000000,
-            icon: <UserGroupIcon className="w-6 h-6" />,
+            icon: <Users className="w-6 h-6" />,
             popular: true,
             features: [
                 "Up to 5 Family Members",
@@ -1093,7 +1001,7 @@ const PricingPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
             retainer: "₦120,000",
             setupAmount: 30000000,
             retainerAmount: 12000000,
-            icon: <BriefcaseIcon className="w-6 h-6" />,
+            icon: <Briefcase className="w-6 h-6" />,
             features: [
                 "Core Team Protection",
                 "Business Asset Security",
@@ -1109,7 +1017,7 @@ const PricingPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
             retainer: "₦380,000",
             setupAmount: 80000000,
             retainerAmount: 38000000,
-            icon: <BriefcaseIcon className="w-6 h-6" />,
+            icon: <Briefcase className="w-6 h-6" />,
             features: [
                 "Up to 10 Users",
                 "Advanced Threat Protection",
@@ -1125,7 +1033,7 @@ const PricingPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
             retainer: "₦180,000",
             setupAmount: 30000000,
             retainerAmount: 18000000,
-            icon: <CrownIcon className="w-6 h-6" />,
+            icon: <Crown className="w-6 h-6" />,
             features: [
                 "Personal Security Detail",
                 "24/7 Threat Monitoring",
@@ -1314,7 +1222,7 @@ const ContactPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
                         </p>
                         <div className="mt-8 space-y-4 text-white/90">
                             <p className="flex items-center gap-3">
-                                <EnvelopeIcon className="w-6 h-6 text-white" />
+                                <Mail className="w-6 h-6 text-white" />
                                 <strong>Email:</strong> <a href="mailto:lensvault@proton.me" className="hover:underline">lensvault@proton.me</a>
                             </p>
                             <p className="flex items-center gap-3">
@@ -1352,7 +1260,7 @@ const ContactPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
                                         disabled={status === 'sending'}
                                         className="w-full flex justify-center items-center font-bold px-6 py-3 rounded-lg text-forest-900 bg-forest-accent hover:bg-white transition-colors disabled:bg-forest-600 shadow-md"
                                     >
-                                        {status === 'sending' && <SpinnerIcon />}
+                                        {status === 'sending' && <Loader className="animate-spin -ml-1 mr-3 h-5 w-5" />}
                                         {status === 'sending' ? 'Sending...' : 'Send Message'}
                                     </button>
                                 </div>
@@ -1480,7 +1388,7 @@ const LoginPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigat
                                         disabled={status === 'loggingIn'}
                                         className="w-full flex justify-center items-center font-bold px-6 py-3 rounded-lg text-white bg-gray-900/80 hover:bg-gray-900 transition-colors disabled:bg-gray-600/50 shadow-lg"
                                     >
-                                        {status === 'loggingIn' && <SpinnerIcon />}
+                                        {status === 'loggingIn' && <Loader className="animate-spin -ml-1 mr-3 h-5 w-5" />}
                                         {status === 'loggingIn' ? 'Signing In...' : 'Login'}
                                     </button>
                                 </div>
@@ -1571,7 +1479,7 @@ const SignupPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNaviga
                                         disabled={status === 'signingUp'}
                                         className="w-full flex justify-center items-center font-bold px-6 py-3 rounded-lg text-white bg-gray-900/80 hover:bg-gray-900 transition-colors disabled:bg-gray-400 shadow-md"
                                     >
-                                        {status === 'signingUp' && <SpinnerIcon />}
+                                        {status === 'signingUp' && <Loader className="animate-spin -ml-1 mr-3 h-5 w-5" />}
                                         {status === 'signingUp' ? 'Creating Account...' : 'Sign Up'}
                                     </button>
                                 </div>
