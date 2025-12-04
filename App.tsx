@@ -1174,6 +1174,10 @@ const ProfilePage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
     const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'settings'>('profile');
     const [isEditing, setIsEditing] = useState(false);
 
+    // Settings State
+    const [darkMode, setDarkMode] = useState(true);
+    const [emailNotifications, setEmailNotifications] = useState(true);
+
     // Profile State
     const [name, setName] = useState(user?.name || '');
     const [email, setEmail] = useState(user?.email || '');
@@ -1617,9 +1621,12 @@ const ProfilePage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
                                             <h3 className="text-white font-bold">Dark Mode</h3>
                                             <p className="text-forest-400 text-sm">Use dark theme for the interface</p>
                                         </div>
-                                        <div className="w-12 h-6 bg-forest-accent rounded-full relative cursor-pointer">
-                                            <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm"></div>
-                                        </div>
+                                        <button
+                                            onClick={() => setDarkMode(!darkMode)}
+                                            className={`w-12 h-6 rounded-full relative cursor-pointer transition-colors duration-300 ${darkMode ? 'bg-forest-accent' : 'bg-forest-700'}`}
+                                        >
+                                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-300 ${darkMode ? 'right-1' : 'left-1'}`}></div>
+                                        </button>
                                     </div>
 
                                     <div className="flex items-center justify-between p-4 bg-forest-900/30 rounded-xl border border-forest-700/50">
@@ -1627,9 +1634,12 @@ const ProfilePage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
                                             <h3 className="text-white font-bold">Email Notifications</h3>
                                             <p className="text-forest-400 text-sm">Receive security alerts via email</p>
                                         </div>
-                                        <div className="w-12 h-6 bg-forest-accent rounded-full relative cursor-pointer">
-                                            <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm"></div>
-                                        </div>
+                                        <button
+                                            onClick={() => setEmailNotifications(!emailNotifications)}
+                                            className={`w-12 h-6 rounded-full relative cursor-pointer transition-colors duration-300 ${emailNotifications ? 'bg-forest-accent' : 'bg-forest-700'}`}
+                                        >
+                                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-300 ${emailNotifications ? 'right-1' : 'left-1'}`}></div>
+                                        </button>
                                     </div>
 
                                     <div className="flex items-center justify-between p-4 bg-forest-900/30 rounded-xl border border-forest-700/50">
