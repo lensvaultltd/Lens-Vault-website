@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import * as dbService from '../services/databaseService';
 import { changePassword, deleteAccount } from '../services/authService';
 import {
-    User as UserIcon, Settings, LogOut, ChevronRight, CheckCircle, ShieldCheck, Mail, ShieldAlert,
-    Camera, Phone, MapPin, Save, Search, Loader
+    User as UserIcon, Settings, LogOut, ChevronRight, CheckCircle, Mail,
+    Camera, Phone, MapPin, Save, Search, Lock, ShieldAlert
 } from 'lucide-react';
 
 const ProfilePage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigate }) => {
@@ -18,108 +17,19 @@ const ProfilePage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
     const [phone, setPhone] = useState('');
     const [location, setLocation] = useState('');
 
-    // Security Stats State
-    const [securityStats, setSecurityStats] = useState<{
-        score: number;
-        scans: number;
-        threats: number;
-        lastScan: string;
-    }>({ score: 0, scans: 0, threats: 0, lastScan: 'Never' });
-    const [isScanning, setIsScanning] = useState(false);
-
     // Security Settings State
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [passwordStatus, setPasswordStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [passwordMsg, setPasswordMsg] = useState('');
     const [isDeleting, setIsDeleting] = useState(false);
-    const [emailNotifications, setEmailNotifications] = useState(false);
-    const [recommendations, setRecommendations] = useState<string[]>([]);
 
     useEffect(() => {
         if (user) {
             setName(user.name || '');
             setEmail(user.email || '');
-            setEmailNotifications(user.emailNotifications || false);
-            loadSecurityStats();
         }
     }, [user]);
-
-    const loadSecurityStats = async () => {
-        if (!user) return;
-        const stats = await dbService.getSecurityStats(user.id);
-        if (stats) {
-            setSecurityStats({
-                score: stats.securityScore,
-                scans: stats.scansRun,
-                threats: stats.threatsFound,
-                lastScan: new Date(stats.lastScanDate).toLocaleString()
-            });
-        } else {
-            // Initialize default stats if none exist
-            await dbService.updateSecurityStats(user.id, {
-                securityScore: 85,
-                scansRun: 0,
-                threatsFound: 0,
-                lastScanDate: new Date().toISOString()
-            });
-            setSecurityStats({
-                score: 85,
-                scans: 0,
-                threats: 0,
-                lastScan: 'Just now'
-            });
-        }
-    };
-
-    const handleScanNow = async () => {
-        if (!user) return;
-        setIsScanning(true);
-        setRecommendations([]);
-
-        // Simulate scanning process
-        setTimeout(async () => {
-            const newScore = Math.floor(Math.random() * (100 - 80 + 1)) + 80; // Random score 80-100
-            const newThreats = newScore < 90 ? Math.floor(Math.random() * 3) + 1 : 0;
-
-            await dbService.updateSecurityStats(user.id, {
-                securityScore: newScore,
-                scansRun: securityStats.scans + 1,
-                threatsFound: newThreats,
-                lastScanDate: new Date().toISOString()
-            });
-
-            // Generate recommendations if score < 100
-            if (newScore < 100) {
-                const recs = [
-                    "Enable 2FA authentication",
-                    "Update your recovery email",
-                    "Review recent login activity",
-                    "Strengthen your password"
-                ];
-                // Pick random recommendations based on how low the score is
-                const count = newScore < 90 ? 3 : 1;
-                setRecommendations(recs.slice(0, count));
-
-                // Simulate sending email if enabled
-                if (emailNotifications) {
-                    // In a real app, this would call an API endpoint to send the email
-                    console.log("Sending security report email to", user.email);
-                    alert(`Security Report sent to ${user.email}`);
-                }
-            }
-
-            await loadSecurityStats();
-            setIsScanning(false);
-        }, 2000);
-    };
-
-    const handleToggleEmailNotifications = async () => {
-        if (!user) return;
-        const newValue = !emailNotifications;
-        setEmailNotifications(newValue);
-        await dbService.updateUserProfile(user.id, { emailNotifications: newValue });
-    };
 
     if (!user) {
         onNavigate('login');
@@ -177,7 +87,7 @@ const ProfilePage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
                             <p className="text-forest-accent font-bold tracking-wider text-sm mb-2 uppercase">User Profile</p>
                             <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">Hello, {user.name.split(' ')[0]}</h1>
                             <p className="text-forest-300 max-w-xl">
-                                This is your profile page. You can manage your personal information, security settings, and account preferences here.
+                                This is your profile page. You can manage your personal information and account preferences here.
                             </p>
                         </div>
                         <div className="flex items-center gap-4">
@@ -289,20 +199,17 @@ const ProfilePage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
 
                             {activeTab === 'profile' && (
                                 <div className="animate-fade-in space-y-6">
-                                    {/* Bento Grid Layout */}
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                    {/* Bento Grid Layout - Adjusted for single column focus */}
+                                    <div className="grid grid-cols-1 gap-6">
 
-                                        {/* Profile Card - Spans 2 columns */}
-                                        <div className="md:col-span-2 bg-gradient-to-br from-forest-900/80 to-forest-900/40 p-8 rounded-3xl border border-forest-700/30 backdrop-blur-sm relative overflow-hidden group">
+                                        {/* Profile Card - Spans full width */}
+                                        <div className="bg-gradient-to-br from-forest-900/80 to-forest-900/40 p-8 rounded-3xl border border-forest-700/30 backdrop-blur-sm relative overflow-hidden group">
                                             <div className="absolute top-0 right-0 w-64 h-64 bg-forest-accent/5 rounded-full blur-3xl -mr-16 -mt-16 transition-all duration-700 group-hover:bg-forest-accent/10"></div>
 
                                             <div className="relative z-10 flex flex-col md:flex-row items-center md:items-start gap-8">
                                                 <div className="relative">
                                                     <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-forest-800 to-forest-950 flex items-center justify-center border-2 border-forest-700 shadow-xl">
                                                         <span className="text-4xl font-bold text-forest-accent">{name.charAt(0)}</span>
-                                                    </div>
-                                                    <div className="absolute -bottom-2 -right-2 bg-forest-900 rounded-lg p-1.5 border border-forest-700 shadow-lg">
-                                                        <ShieldCheck className="w-5 h-5 text-forest-accent" />
                                                     </div>
                                                 </div>
 
@@ -324,53 +231,8 @@ const ProfilePage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
                                             </div>
                                         </div>
 
-                                        {/* Security Overview Card - Takes 1 column */}
-                                        <div className="bg-gradient-to-br from-forest-800/30 to-forest-900/30 p-6 rounded-2xl border border-forest-700/30 h-fit relative overflow-hidden group hover:border-forest-accent/30 transition-colors">
-                                            <div className="absolute top-0 right-0 w-32 h-32 bg-forest-accent/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/3 group-hover:bg-forest-accent/10 transition-colors"></div>
-
-                                            <div className="flex items-center justify-between mb-6 relative z-10">
-                                                <h3 className="text-lg font-bold text-white">Security Overview</h3>
-                                                <div className={`flex items-center gap-2 px-3 py-1 text-xs font-bold rounded-full border ${securityStats.threats > 0 ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-green-500/20 text-green-400 border-green-500/30'}`}>
-                                                    {securityStats.threats > 0 ? <ShieldAlert className="w-3 h-3" /> : <ShieldCheck className="w-3 h-3" />}
-                                                    {securityStats.threats > 0 ? 'Attention Needed' : 'Protected'}
-                                                </div>
-                                            </div>
-
-                                            <div className="text-center mb-8 relative z-10">
-                                                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-forest-900 border-4 border-forest-800 mb-4 relative">
-                                                    <span className="text-2xl font-bold text-white">{securityStats.score}</span>
-                                                    <span className={`absolute top-0 right-0 w-4 h-4 border-2 border-forest-900 rounded-full ${securityStats.score >= 90 ? 'bg-green-500' : securityStats.score >= 70 ? 'bg-yellow-500' : 'bg-red-500'}`}></span>
-                                                </div>
-                                                <h4 className="text-xl font-bold text-white">Security Score</h4>
-                                                <p className="text-forest-400 text-sm">{securityStats.score >= 90 ? 'Your account is secure' : 'Improvements available'}</p>
-                                            </div>
-
-                                            <div className="grid grid-cols-2 gap-4 border-t border-forest-700/50 pt-6 relative z-10">
-                                                <div className="text-center p-3 bg-forest-900/50 rounded-lg">
-                                                    <p className="text-2xl font-bold text-white">{securityStats.scans}</p>
-                                                    <p className="text-xs text-forest-400 uppercase tracking-wider">Scans Run</p>
-                                                </div>
-                                                <div className="text-center p-3 bg-forest-900/50 rounded-lg">
-                                                    <p className={`text-2xl font-bold ${securityStats.threats > 0 ? 'text-red-400' : 'text-white'}`}>{securityStats.threats}</p>
-                                                    <p className="text-xs text-forest-400 uppercase tracking-wider">Threats Found</p>
-                                                </div>
-                                            </div>
-
-                                            <div className="mt-6 pt-4 border-t border-forest-700/50 text-center">
-                                                <p className="text-xs text-forest-400 mb-4">Last scan: <span className="text-forest-200">{securityStats.lastScan}</span></p>
-                                                <button
-                                                    onClick={handleScanNow}
-                                                    disabled={isScanning}
-                                                    className="w-full py-2 bg-forest-accent/10 hover:bg-forest-accent/20 text-forest-accent font-bold rounded-lg transition-colors flex items-center justify-center gap-2"
-                                                >
-                                                    {isScanning ? <Loader className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
-                                                    {isScanning ? 'Scanning...' : 'Scan Now'}
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        {/* Personal Info - Spans 3 columns (Full width) */}
-                                        <div className="md:col-span-3 bg-forest-900/30 p-6 rounded-2xl border border-forest-700/30">
+                                        {/* Personal Info - Spans full width */}
+                                        <div className="bg-forest-900/30 p-6 rounded-2xl border border-forest-700/30">
                                             <div className="flex items-center gap-6 mb-6">
                                                 <div className="relative group cursor-pointer">
                                                     <div className="w-20 h-20 bg-forest-800 rounded-full flex items-center justify-center border-2 border-forest-accent overflow-hidden">
@@ -468,26 +330,6 @@ const ProfilePage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
                                             )}
                                         </div>
 
-                                        {/* Recommendations Section - Conditional */}
-                                        {recommendations.length > 0 && (
-                                            <div className="md:col-span-3 bg-red-500/10 p-6 rounded-2xl border border-red-500/30 animate-fade-in">
-                                                <h3 className="text-xl font-bold text-red-400 mb-4 flex items-center gap-2">
-                                                    <ShieldAlert className="w-5 h-5" />
-                                                    Security Recommendations
-                                                </h3>
-                                                <div className="grid md:grid-cols-2 gap-4">
-                                                    {recommendations.map((rec, index) => (
-                                                        <div key={index} className="flex items-start gap-3 p-3 bg-red-500/5 rounded-lg border border-red-500/20">
-                                                            <div className="p-1 bg-red-500/20 rounded-full mt-0.5">
-                                                                <ShieldAlert className="w-3 h-3 text-red-400" />
-                                                            </div>
-                                                            <span className="text-forest-200 text-sm">{rec}</span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-
                                     </div>
                                 </div>
                             )}
@@ -495,26 +337,6 @@ const ProfilePage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
                             {activeTab === 'settings' && (
                                 <div className="animate-fade-in space-y-8">
                                     <h2 className="text-2xl font-bold text-white mb-6">Account Settings</h2>
-
-                                    <div className="bg-forest-900/30 p-6 rounded-xl border border-forest-700/50">
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <h3 className="text-xl font-bold text-white mb-1 flex items-center gap-2">
-                                                    <Mail className="w-5 h-5 text-forest-accent" />
-                                                    Email Security Reports
-                                                </h3>
-                                                <p className="text-forest-400 text-sm">
-                                                    Receive detailed recommendations via email when your security score is low.
-                                                </p>
-                                            </div>
-                                            <button
-                                                onClick={handleToggleEmailNotifications}
-                                                className={`w-12 h-6 rounded-full relative cursor-pointer transition-colors duration-300 ${emailNotifications ? 'bg-forest-accent' : 'bg-forest-700'}`}
-                                            >
-                                                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-300 ${emailNotifications ? 'right-1' : 'left-1'}`}></div>
-                                            </button>
-                                        </div>
-                                    </div>
 
                                     <div className="bg-forest-900/30 p-6 rounded-xl border border-forest-700/50">
                                         <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
