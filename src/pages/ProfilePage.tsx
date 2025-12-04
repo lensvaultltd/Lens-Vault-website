@@ -220,9 +220,7 @@ const ProfilePage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
                                                     </p>
 
                                                     <div className="flex flex-wrap justify-center md:justify-start gap-3">
-                                                        <span className="px-4 py-1.5 bg-forest-accent/10 text-forest-accent text-sm font-bold rounded-full border border-forest-accent/20">
-                                                            {user?.plan || 'Free Plan'}
-                                                        </span>
+
                                                         <span className="px-4 py-1.5 bg-forest-800/50 text-forest-300 text-sm font-medium rounded-full border border-forest-700/50">
                                                             Member since {new Date().getFullYear()}
                                                         </span>
