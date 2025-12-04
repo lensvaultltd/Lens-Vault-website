@@ -8,6 +8,7 @@ export interface Database {
                     name: string;
                     wallet_address: string | null;
                     plan: string | null;
+                    email_notifications: boolean;
                     created_at: string;
                     updated_at: string;
                 };
@@ -17,6 +18,7 @@ export interface Database {
                     name: string;
                     wallet_address?: string | null;
                     plan?: string | null;
+                    email_notifications?: boolean;
                     created_at?: string;
                     updated_at?: string;
                 };
@@ -26,6 +28,7 @@ export interface Database {
                     name?: string;
                     wallet_address?: string | null;
                     plan?: string | null;
+                    email_notifications?: boolean;
                     created_at?: string;
                     updated_at?: string;
                 };
@@ -156,6 +159,7 @@ export interface User {
     name: string;
     walletAddress?: string;
     plan?: string;
+    emailNotifications?: boolean;
 }
 
 export interface Payment {

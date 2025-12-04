@@ -139,6 +139,7 @@ export async function updateUserProfile(
         name: string;
         email: string;
         walletAddress: string;
+        emailNotifications: boolean;
     }>
 ): Promise<boolean> {
     try {
@@ -149,6 +150,7 @@ export async function updateUserProfile(
         if (updates.name) dbUpdates.name = updates.name;
         if (updates.email) dbUpdates.email = updates.email;
         if (updates.walletAddress !== undefined) dbUpdates.wallet_address = updates.walletAddress;
+        if (updates.emailNotifications !== undefined) dbUpdates.email_notifications = updates.emailNotifications;
 
         const { error } = await supabase
             .from('users')
@@ -181,7 +183,8 @@ export async function getUserById(userId: string): Promise<User | null> {
             email: data.email,
             name: data.name,
             plan: data.plan || undefined,
-            walletAddress: data.wallet_address || undefined
+            walletAddress: data.wallet_address || undefined,
+            emailNotifications: data.email_notifications || false
         };
     } catch (error) {
         console.error('Get user by ID error:', error);
