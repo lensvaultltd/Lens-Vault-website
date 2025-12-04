@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { supabase } from '../lib/supabase';
-import type { User, Payment, ContactMessage, Feedback } from '../types/database.types';
+import type { User, Payment, ContactMessage, Feedback, SecurityStats } from '../types/database.types';
 
 /**
  * Update user's plan
@@ -244,5 +244,74 @@ export async function getFeedback(): Promise<Feedback[]> {
     } catch (error) {
         console.error('Get feedback error:', error);
         return [];
+    }
+}
+
+/**
+ * Get user security stats
+ */
+export async function getSecurityStats(userId: string): Promise<SecurityStats | null> {
+    try {
+        const { data, error } = await supabase
+            .from('security_stats')
+            .select('*')
+            .eq('user_id', userId)
+            .single();
+
+        if (error) {
+            // If no stats found, return null (UI can show defaults or create one)
+            if (error.code === 'PGRST116') return null;
+            throw error;
+        }
+
+        return {
+            id: data.id,
+            userId: data.user_id,
+            securityScore: data.security_score,
+            scansRun: data.scans_run,
+            threatsFound: data.threats_found,
+            lastScanDate: data.last_scan_date
+        };
+    } catch (error) {
+        console.error('Get security stats error:', error);
+        return null;
+    }
+}
+
+/**
+ * Update security stats (e.g. after a scan)
+ */
+export async function updateSecurityStats(
+    userId: string,
+    stats: Partial<{
+        securityScore: number;
+        scansRun: number;
+        threatsFound: number;
+        lastScanDate: string;
+    }>
+): Promise<boolean> {
+    try {
+        const dbUpdates: any = {
+            updated_at: new Date().toISOString()
+        };
+
+        if (stats.securityScore !== undefined) dbUpdates.security_score = stats.securityScore;
+        if (stats.scansRun !== undefined) dbUpdates.scans_run = stats.scansRun;
+        if (stats.threatsFound !== undefined) dbUpdates.threats_found = stats.threatsFound;
+        if (stats.lastScanDate !== undefined) dbUpdates.last_scan_date = stats.lastScanDate;
+
+        // Upsert: update if exists, insert if not
+        const { error } = await supabase
+            .from('security_stats')
+            .upsert({
+                user_id: userId,
+                ...dbUpdates
+            }, { onConflict: 'user_id' });
+
+        if (error) throw error;
+        return true;
+    } catch (error) {
+        console.error('Update security stats error:', error);
+        return false;
     }
 }

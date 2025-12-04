@@ -1180,7 +1180,16 @@ const ProfilePage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
     const [phone, setPhone] = useState('');
     const [location, setLocation] = useState('');
 
-    // Security State
+    // Security Stats State
+    const [securityStats, setSecurityStats] = useState<{
+        score: number;
+        scans: number;
+        threats: number;
+        lastScan: string;
+    }>({ score: 0, scans: 0, threats: 0, lastScan: 'Never' });
+    const [isScanning, setIsScanning] = useState(false);
+
+    // Security Settings State
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [passwordStatus, setPasswordStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -1191,8 +1200,57 @@ const ProfilePage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
         if (user) {
             setName(user.name || '');
             setEmail(user.email || '');
+            loadSecurityStats();
         }
     }, [user]);
+
+    const loadSecurityStats = async () => {
+        if (!user) return;
+        const stats = await dbService.getSecurityStats(user.id);
+        if (stats) {
+            setSecurityStats({
+                score: stats.securityScore,
+                scans: stats.scansRun,
+                threats: stats.threatsFound,
+                lastScan: new Date(stats.lastScanDate).toLocaleString()
+            });
+        } else {
+            // Initialize default stats if none exist
+            await dbService.updateSecurityStats(user.id, {
+                securityScore: 85,
+                scansRun: 0,
+                threatsFound: 0,
+                lastScanDate: new Date().toISOString()
+            });
+            setSecurityStats({
+                score: 85,
+                scans: 0,
+                threats: 0,
+                lastScan: 'Just now'
+            });
+        }
+    };
+
+    const handleScanNow = async () => {
+        if (!user) return;
+        setIsScanning(true);
+
+        // Simulate scanning process
+        setTimeout(async () => {
+            const newScore = Math.floor(Math.random() * (100 - 80 + 1)) + 80; // Random score 80-100
+            const newThreats = newScore < 90 ? Math.floor(Math.random() * 3) + 1 : 0;
+
+            await dbService.updateSecurityStats(user.id, {
+                securityScore: newScore,
+                scansRun: securityStats.scans + 1,
+                threatsFound: newThreats,
+                lastScanDate: new Date().toISOString()
+            });
+
+            await loadSecurityStats();
+            setIsScanning(false);
+        }, 2000);
+    };
 
     if (!user) {
         onNavigate('login');
@@ -1495,34 +1553,42 @@ const ProfilePage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
 
                                             <div className="flex items-center justify-between mb-6 relative z-10">
                                                 <h3 className="text-lg font-bold text-white">Security Overview</h3>
-                                                <div className="flex items-center gap-2 px-3 py-1 bg-green-500/20 text-green-400 text-xs font-bold rounded-full border border-green-500/30">
-                                                    <ShieldCheck className="w-3 h-3" />
-                                                    Protected
+                                                <div className={`flex items-center gap-2 px-3 py-1 text-xs font-bold rounded-full border ${securityStats.threats > 0 ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-green-500/20 text-green-400 border-green-500/30'}`}>
+                                                    {securityStats.threats > 0 ? <ShieldAlert className="w-3 h-3" /> : <ShieldCheck className="w-3 h-3" />}
+                                                    {securityStats.threats > 0 ? 'Attention Needed' : 'Protected'}
                                                 </div>
                                             </div>
 
                                             <div className="text-center mb-8 relative z-10">
                                                 <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-forest-900 border-4 border-forest-800 mb-4 relative">
-                                                    <span className="text-2xl font-bold text-white">100</span>
-                                                    <span className="absolute top-0 right-0 w-4 h-4 bg-green-500 border-2 border-forest-900 rounded-full"></span>
+                                                    <span className="text-2xl font-bold text-white">{securityStats.score}</span>
+                                                    <span className={`absolute top-0 right-0 w-4 h-4 border-2 border-forest-900 rounded-full ${securityStats.score >= 90 ? 'bg-green-500' : securityStats.score >= 70 ? 'bg-yellow-500' : 'bg-red-500'}`}></span>
                                                 </div>
                                                 <h4 className="text-xl font-bold text-white">Security Score</h4>
-                                                <p className="text-forest-400 text-sm">Your account is secure</p>
+                                                <p className="text-forest-400 text-sm">{securityStats.score >= 90 ? 'Your account is secure' : 'Improvements available'}</p>
                                             </div>
 
                                             <div className="grid grid-cols-2 gap-4 border-t border-forest-700/50 pt-6 relative z-10">
                                                 <div className="text-center p-3 bg-forest-900/50 rounded-lg">
-                                                    <p className="text-2xl font-bold text-white">12</p>
+                                                    <p className="text-2xl font-bold text-white">{securityStats.scans}</p>
                                                     <p className="text-xs text-forest-400 uppercase tracking-wider">Scans Run</p>
                                                 </div>
                                                 <div className="text-center p-3 bg-forest-900/50 rounded-lg">
-                                                    <p className="text-2xl font-bold text-white">0</p>
+                                                    <p className={`text-2xl font-bold ${securityStats.threats > 0 ? 'text-red-400' : 'text-white'}`}>{securityStats.threats}</p>
                                                     <p className="text-xs text-forest-400 uppercase tracking-wider">Threats Found</p>
                                                 </div>
                                             </div>
 
                                             <div className="mt-6 pt-4 border-t border-forest-700/50 text-center">
-                                                <p className="text-xs text-forest-400">Last scan: <span className="text-forest-200">Today, 10:23 AM</span></p>
+                                                <p className="text-xs text-forest-400 mb-4">Last scan: <span className="text-forest-200">{securityStats.lastScan}</span></p>
+                                                <button
+                                                    onClick={handleScanNow}
+                                                    disabled={isScanning}
+                                                    className="w-full py-2 bg-forest-accent/10 hover:bg-forest-accent/20 text-forest-accent font-bold rounded-lg transition-colors flex items-center justify-center gap-2"
+                                                >
+                                                    {isScanning ? <Loader className="w-4 h-4 animate-spin" /> : <ShieldCheck className="w-4 h-4" />}
+                                                    {isScanning ? 'Scanning...' : 'Scan Now'}
+                                                </button>
                                             </div>
                                         </div>
                                     </div>

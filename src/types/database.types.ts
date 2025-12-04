@@ -108,6 +108,35 @@ export interface Database {
                     created_at?: string;
                 };
             };
+            security_stats: {
+                Row: {
+                    id: string;
+                    user_id: string;
+                    security_score: number;
+                    scans_run: number;
+                    threats_found: number;
+                    last_scan_date: string;
+                    updated_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    user_id: string;
+                    security_score?: number;
+                    scans_run?: number;
+                    threats_found?: number;
+                    last_scan_date?: string;
+                    updated_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    user_id?: string;
+                    security_score?: number;
+                    scans_run?: number;
+                    threats_found?: number;
+                    last_scan_date?: string;
+                    updated_at?: string;
+                };
+            };
         };
         Views: {
             [_ in never]: never;
@@ -156,4 +185,13 @@ export interface Feedback {
     message: string;
     rating?: number;
     createdAt: string;
+}
+
+export interface SecurityStats {
+    id: string;
+    userId: string;
+    securityScore: number;
+    scansRun: number;
+    threatsFound: number;
+    lastScanDate: string;
 }
