@@ -2001,7 +2001,7 @@ const App: React.FC = () => {
             <div className="flex flex-col min-h-screen relative">
                 <AnimatedBackground />
                 {currentPage !== 'admin' && <Header onNavigate={handleNavigate} />}
-                <main className="flex-grow z-10">
+                <main className="flex-grow relative z-10">
                     {renderPage()}
                 </main>
                 {currentPage !== 'admin' && <Footer onNavigate={handleNavigate} />}
