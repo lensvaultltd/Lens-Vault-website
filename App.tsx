@@ -375,7 +375,7 @@ const HeroSection: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
                         </div>
                         <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight tracking-tight mb-8">
                             Lens Vault <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-forest-accent to-white">Build Your Mind</span>
+                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-forest-accent to-white">Built for your digital peace of mind</span>
                         </h1>
                         <p className="text-xl text-forest-300 max-w-2xl leading-relaxed font-light mb-10">
                             Secure your digital presence with advanced cybersecurity solutions. Proof-backed protection for individuals and businesses.
@@ -402,7 +402,7 @@ const HeroSection: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
                         <div className="text-left space-y-8">
                             <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight tracking-tight">
                                 Lens Vault <br />
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-forest-accent to-white">Build Your Mind</span>
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-forest-accent to-white">Built for your digital peace of mind</span>
                             </h1>
                             <p className="text-lg text-forest-300 max-w-xl leading-relaxed font-light">
                                 Secure your digital presence with advanced cybersecurity solutions. Proof-backed protection for individuals and businesses.
