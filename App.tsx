@@ -15,7 +15,7 @@ import type { User } from './src/types/database.types';
 import {
     ShieldCheck, Users, Briefcase, Star, Crown, Lock, FileText, User as UserIcon, Mail, Loader,
     Menu, X, CheckCircle, Globe, Tag, ShieldAlert, Eye, EyeOff, Instagram as InstagramIcon, Twitter as TwitterIcon,
-    Linkedin as LinkedInIcon, MessageCircle, Search, ChevronRight, Settings, LogOut
+    Linkedin as LinkedInIcon, MessageCircle, Search, ChevronRight, Settings, LogOut, Camera, MapPin, Phone, Edit2, Save
 } from 'lucide-react';
 import { resetPassword, changePassword, deleteAccount } from './src/services/authService';
 import { FeedbackModal } from './src/components/FeedbackModal';
@@ -31,7 +31,7 @@ declare global {
 // --- SVG Icon Components ---
 
 const LogoIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <img src={logoImg} alt="Lens Vault Logo" className={className} />
+    <img src={logoImg} alt="Lens Vault Logo" className={className} loading="lazy" decoding="async" />
 );
 
 
@@ -647,13 +647,13 @@ const TrustedCollaboratorsSection: React.FC = () => (
             <p className="text-center text-forest-300 mb-8 uppercase tracking-widest text-sm font-semibold">Trusted Collaborators & Partners</p>
             <div className="flex flex-wrap justify-center items-center gap-12 md:gap-20 opacity-80 hover:opacity-100 transition-opacity duration-300">
                 <a href="https://www.orivonedge.dev/" target="_blank" rel="noopener noreferrer" className="group flex flex-col items-center gap-3 transition-transform hover:scale-105">
-                    <img src={orivonImg} alt="OrivonEdge" className="h-12 md:h-16 w-auto object-contain brightness-0 invert group-hover:brightness-100 group-hover:invert-0 transition-all duration-300" />
+                    <img src={orivonImg} alt="OrivonEdge" className="h-12 md:h-16 w-auto object-contain brightness-0 invert group-hover:brightness-100 group-hover:invert-0 transition-all duration-300" loading="lazy" decoding="async" />
                 </a>
                 <a href="https://www.instagram.com/thesavwomen/" target="_blank" rel="noopener noreferrer" className="group flex flex-col items-center gap-3 transition-transform hover:scale-105">
-                    <img src={savwomenImg} alt="The Savwomen" className="h-12 md:h-16 w-auto object-contain" />
+                    <img src={savwomenImg} alt="The Savwomen" className="h-12 md:h-16 w-auto object-contain" loading="lazy" decoding="async" />
                 </a>
                 <a href="https://www.linkedin.com/company/honoris-collective-lab-nile-university-of-nigeria?originalSubdomain=ng" target="_blank" rel="noopener noreferrer" className="group flex flex-col items-center gap-3 transition-transform hover:scale-105">
-                    <img src={nileImg} alt="Nile Collective Lab" className="h-12 md:h-16 w-auto object-contain bg-white/10 rounded-lg p-1" />
+                    <img src={nileImg} alt="Nile Collective Lab" className="h-12 md:h-16 w-auto object-contain bg-white/10 rounded-lg p-1" loading="lazy" decoding="async" />
                 </a>
             </div>
         </div>
@@ -1283,8 +1283,8 @@ const ProfilePage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
 
             <div className="container mx-auto px-4 md:px-6 py-8 flex-grow">
                 <div className="grid md:grid-cols-12 gap-8 h-full">
-                    {/* Sidebar Navigation */}
-                    <div className="md:col-span-3 lg:col-span-3">
+                    {/* Sidebar Navigation (Desktop) */}
+                    <div className="hidden md:block md:col-span-3 lg:col-span-3">
                         <div className="glass-card p-6 border border-forest-700/50 h-full flex flex-col">
                             <div className="flex flex-col items-center mb-8">
                                 <div className="w-20 h-20 bg-forest-800 rounded-full flex items-center justify-center border-2 border-forest-accent mb-3">
@@ -1341,114 +1341,206 @@ const ProfilePage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
 
                     {/* Main Content Area */}
                     <div className="md:col-span-9 lg:col-span-9">
-                        <div className="glass-card p-8 border border-forest-700/50 h-full">
+                        {/* Mobile Tabs */}
+                        <div className="md:hidden flex overflow-x-auto gap-3 mb-6 pb-2 scrollbar-hide">
+                            <button
+                                onClick={() => setActiveTab('profile')}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-all ${activeTab === 'profile' ? 'bg-forest-accent text-forest-900 font-bold' : 'bg-forest-800 text-forest-300 border border-forest-700'}`}
+                            >
+                                <UserIcon className="w-4 h-4" />
+                                My Profile
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('security')}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-all ${activeTab === 'security' ? 'bg-forest-accent text-forest-900 font-bold' : 'bg-forest-800 text-forest-300 border border-forest-700'}`}
+                            >
+                                <ShieldCheck className="w-4 h-4" />
+                                Security
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('settings')}
+                                className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-all ${activeTab === 'settings' ? 'bg-forest-accent text-forest-900 font-bold' : 'bg-forest-800 text-forest-300 border border-forest-700'}`}
+                            >
+                                <Settings className="w-4 h-4" />
+                                Settings
+                            </button>
+                        </div>
+
+                        <div className="glass-card p-6 md:p-8 border border-forest-700/50 h-full">
                             {activeTab === 'profile' && (
-                                <div className="animate-fade-in">
+                                <div className="animate-fade-in relative">
+                                    {/* Success Notification */}
+                                    {passwordStatus === 'success' && (
+                                        <div className="absolute top-0 right-0 bg-green-500/20 text-green-400 border border-green-500/50 px-4 py-2 rounded-lg flex items-center gap-2 animate-fade-in-down">
+                                            <CheckCircle className="w-4 h-4" />
+                                            Changes saved successfully
+                                        </div>
+                                    )}
+
                                     <div className="flex justify-between items-center mb-8">
                                         <h2 className="text-2xl font-bold text-white">My Account</h2>
-                                        <button className="px-4 py-2 bg-forest-800 text-forest-200 text-sm rounded-lg hover:bg-forest-700 transition-colors">
-                                            Settings
-                                        </button>
+                                        {!isEditing ? (
+                                            <button
+                                                onClick={() => setIsEditing(true)}
+                                                className="flex items-center gap-2 px-4 py-2 bg-forest-800 text-forest-200 text-sm rounded-lg hover:bg-forest-700 transition-colors border border-forest-700"
+                                            >
+                                                <Edit2 className="w-4 h-4" />
+                                                Edit Profile
+                                            </button>
+                                        ) : (
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => setIsEditing(false)}
+                                                    className="px-4 py-2 text-forest-400 text-sm hover:text-white transition-colors"
+                                                >
+                                                    Cancel
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        setIsEditing(false);
+                                                        setPasswordStatus('success');
+                                                        setTimeout(() => setPasswordStatus('idle'), 3000);
+                                                    }}
+                                                    className="flex items-center gap-2 px-4 py-2 bg-forest-accent text-forest-900 text-sm font-bold rounded-lg hover:bg-white transition-colors"
+                                                >
+                                                    <Save className="w-4 h-4" />
+                                                    Save Changes
+                                                </button>
+                                            </div>
+                                        )}
                                     </div>
 
                                     <div className="grid md:grid-cols-2 gap-8">
-                                        <div className="space-y-6">
-                                            <h3 className="text-sm font-bold text-forest-400 uppercase tracking-wider mb-4">User Information</h3>
-                                            <div>
-                                                <label className="block text-sm font-medium text-forest-300 mb-2">Full Name</label>
-                                                <input
-                                                    type="text"
-                                                    value={name}
-                                                    onChange={(e) => setName(e.target.value)}
-                                                    disabled={!isEditing}
-                                                    className="w-full bg-forest-900/50 border border-forest-600 rounded-lg py-3 px-4 text-white focus:outline-none focus:border-forest-accent disabled:opacity-50 disabled:cursor-not-allowed"
-                                                />
+                                        <div className="space-y-8">
+                                            {/* Avatar Section */}
+                                            <div className="flex items-center gap-6">
+                                                <div className="relative group cursor-pointer">
+                                                    <div className="w-24 h-24 bg-forest-800 rounded-full flex items-center justify-center border-2 border-forest-accent overflow-hidden">
+                                                        <UserIcon className="w-12 h-12 text-forest-accent" />
+                                                    </div>
+                                                    <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <Camera className="w-8 h-8 text-white" />
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-xl font-bold text-white">{name || 'User Name'}</h3>
+                                                    <p className="text-forest-400 text-sm">Member since {new Date().getFullYear()}</p>
+                                                    <button className="text-forest-accent text-sm mt-1 hover:underline">Change Avatar</button>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-forest-300 mb-2">Email Address</label>
-                                                <input
-                                                    type="email"
-                                                    value={email}
-                                                    onChange={(e) => setEmail(e.target.value)}
-                                                    disabled={!isEditing}
-                                                    className="w-full bg-forest-900/50 border border-forest-600 rounded-lg py-3 px-4 text-white focus:outline-none focus:border-forest-accent disabled:opacity-50 disabled:cursor-not-allowed"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-forest-300 mb-2">Phone Number</label>
-                                                <input
-                                                    type="tel"
-                                                    value={phone}
-                                                    onChange={(e) => setPhone(e.target.value)}
-                                                    placeholder="+1 (555) 000-0000"
-                                                    disabled={!isEditing}
-                                                    className="w-full bg-forest-900/50 border border-forest-600 rounded-lg py-3 px-4 text-white focus:outline-none focus:border-forest-accent disabled:opacity-50 disabled:cursor-not-allowed"
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="block text-sm font-medium text-forest-300 mb-2">Location</label>
-                                                <input
-                                                    type="text"
-                                                    value={location}
-                                                    onChange={(e) => setLocation(e.target.value)}
-                                                    placeholder="New York, USA"
-                                                    disabled={!isEditing}
-                                                    className="w-full bg-forest-900/50 border border-forest-600 rounded-lg py-3 px-4 text-white focus:outline-none focus:border-forest-accent disabled:opacity-50 disabled:cursor-not-allowed"
-                                                />
+
+                                            {/* Profile Fields */}
+                                            <div className="space-y-6">
+                                                <h3 className="text-sm font-bold text-forest-400 uppercase tracking-wider border-b border-forest-700/50 pb-2">Personal Information</h3>
+
+                                                <div className="grid gap-6">
+                                                    <div>
+                                                        <label className="block text-xs font-medium text-forest-400 mb-1 uppercase tracking-wide">Full Name</label>
+                                                        {isEditing ? (
+                                                            <input
+                                                                type="text"
+                                                                value={name}
+                                                                onChange={(e) => setName(e.target.value)}
+                                                                className="w-full bg-forest-900/50 border border-forest-600 rounded-lg py-2 px-3 text-white focus:outline-none focus:border-forest-accent"
+                                                            />
+                                                        ) : (
+                                                            <p className="text-white text-lg font-medium">{name}</p>
+                                                        )}
+                                                    </div>
+
+                                                    <div>
+                                                        <label className="block text-xs font-medium text-forest-400 mb-1 uppercase tracking-wide">Email Address</label>
+                                                        {isEditing ? (
+                                                            <input
+                                                                type="email"
+                                                                value={email}
+                                                                onChange={(e) => setEmail(e.target.value)}
+                                                                className="w-full bg-forest-900/50 border border-forest-600 rounded-lg py-2 px-3 text-white focus:outline-none focus:border-forest-accent"
+                                                            />
+                                                        ) : (
+                                                            <div className="flex items-center gap-2 text-white text-lg">
+                                                                <Mail className="w-4 h-4 text-forest-500" />
+                                                                {email}
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    <div>
+                                                        <label className="block text-xs font-medium text-forest-400 mb-1 uppercase tracking-wide">Phone Number</label>
+                                                        {isEditing ? (
+                                                            <input
+                                                                type="tel"
+                                                                value={phone}
+                                                                onChange={(e) => setPhone(e.target.value)}
+                                                                placeholder="+1 (555) 000-0000"
+                                                                className="w-full bg-forest-900/50 border border-forest-600 rounded-lg py-2 px-3 text-white focus:outline-none focus:border-forest-accent"
+                                                            />
+                                                        ) : (
+                                                            <div className="flex items-center gap-2 text-white text-lg">
+                                                                <Phone className="w-4 h-4 text-forest-500" />
+                                                                {phone || <span className="text-forest-500 italic text-sm">Not set</span>}
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    <div>
+                                                        <label className="block text-xs font-medium text-forest-400 mb-1 uppercase tracking-wide">Location</label>
+                                                        {isEditing ? (
+                                                            <input
+                                                                type="text"
+                                                                value={location}
+                                                                onChange={(e) => setLocation(e.target.value)}
+                                                                placeholder="New York, USA"
+                                                                className="w-full bg-forest-900/50 border border-forest-600 rounded-lg py-2 px-3 text-white focus:outline-none focus:border-forest-accent"
+                                                            />
+                                                        ) : (
+                                                            <div className="flex items-center gap-2 text-white text-lg">
+                                                                <MapPin className="w-4 h-4 text-forest-500" />
+                                                                {location || <span className="text-forest-500 italic text-sm">Not set</span>}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
 
-                                        <div className="bg-forest-800/30 p-6 rounded-2xl border border-forest-700/30 h-fit">
-                                            <div className="flex items-center justify-between mb-6">
-                                                <h3 className="text-lg font-bold text-white">Plan Status</h3>
-                                                <span className="px-3 py-1 bg-green-500/20 text-green-400 text-xs font-bold rounded-full border border-green-500/30">Active</span>
-                                            </div>
-                                            <div className="text-center mb-6">
-                                                <div className="w-24 h-24 bg-forest-900 rounded-full mx-auto mb-4 flex items-center justify-center border-2 border-forest-accent">
-                                                    <ShieldCheck className="w-12 h-12 text-forest-accent" />
+                                        {/* Security Overview Card */}
+                                        <div className="bg-gradient-to-br from-forest-800/30 to-forest-900/30 p-6 rounded-2xl border border-forest-700/30 h-fit relative overflow-hidden group hover:border-forest-accent/30 transition-colors">
+                                            <div className="absolute top-0 right-0 w-32 h-32 bg-forest-accent/5 rounded-full blur-2xl -translate-y-1/2 translate-x-1/3 group-hover:bg-forest-accent/10 transition-colors"></div>
+
+                                            <div className="flex items-center justify-between mb-6 relative z-10">
+                                                <h3 className="text-lg font-bold text-white">Security Overview</h3>
+                                                <div className="flex items-center gap-2 px-3 py-1 bg-green-500/20 text-green-400 text-xs font-bold rounded-full border border-green-500/30">
+                                                    <ShieldCheck className="w-3 h-3" />
+                                                    Protected
                                                 </div>
-                                                <h4 className="text-xl font-bold text-white">{user.plan || 'Free Plan'}</h4>
-                                                <p className="text-forest-400 text-sm">Protected since {new Date().getFullYear()}</p>
                                             </div>
-                                            <div className="flex justify-between text-center border-t border-forest-700/50 pt-6">
-                                                <div>
+
+                                            <div className="text-center mb-8 relative z-10">
+                                                <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-forest-900 border-4 border-forest-800 mb-4 relative">
+                                                    <span className="text-2xl font-bold text-white">100</span>
+                                                    <span className="absolute top-0 right-0 w-4 h-4 bg-green-500 border-2 border-forest-900 rounded-full"></span>
+                                                </div>
+                                                <h4 className="text-xl font-bold text-white">Security Score</h4>
+                                                <p className="text-forest-400 text-sm">Your account is secure</p>
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-4 border-t border-forest-700/50 pt-6 relative z-10">
+                                                <div className="text-center p-3 bg-forest-900/50 rounded-lg">
                                                     <p className="text-2xl font-bold text-white">12</p>
-                                                    <p className="text-xs text-forest-400 uppercase">Scans</p>
+                                                    <p className="text-xs text-forest-400 uppercase tracking-wider">Scans Run</p>
                                                 </div>
-                                                <div>
+                                                <div className="text-center p-3 bg-forest-900/50 rounded-lg">
                                                     <p className="text-2xl font-bold text-white">0</p>
-                                                    <p className="text-xs text-forest-400 uppercase">Threats</p>
-                                                </div>
-                                                <div>
-                                                    <p className="text-2xl font-bold text-white">100%</p>
-                                                    <p className="text-xs text-forest-400 uppercase">Score</p>
+                                                    <p className="text-xs text-forest-400 uppercase tracking-wider">Threats Found</p>
                                                 </div>
                                             </div>
-                                            <button
-                                                onClick={() => onNavigate('pricing')}
-                                                className="w-full mt-6 py-3 bg-forest-accent text-forest-900 font-bold rounded-lg hover:bg-white transition-colors"
-                                            >
-                                                Upgrade Plan
-                                            </button>
+
+                                            <div className="mt-6 pt-4 border-t border-forest-700/50 text-center">
+                                                <p className="text-xs text-forest-400">Last scan: <span className="text-forest-200">Today, 10:23 AM</span></p>
+                                            </div>
                                         </div>
                                     </div>
-
-                                    {isEditing && (
-                                        <div className="mt-8 flex justify-end gap-4">
-                                            <button
-                                                onClick={() => setIsEditing(false)}
-                                                className="px-6 py-3 border border-forest-600 text-forest-300 font-bold rounded-lg hover:bg-forest-800 transition-colors"
-                                            >
-                                                Cancel
-                                            </button>
-                                            <button
-                                                onClick={() => { setIsEditing(false); /* Save logic here */ }}
-                                                className="px-6 py-3 bg-forest-accent text-forest-900 font-bold rounded-lg hover:bg-white transition-colors"
-                                            >
-                                                Save Changes
-                                            </button>
-                                        </div>
-                                    )}
                                 </div>
                             )}
 
