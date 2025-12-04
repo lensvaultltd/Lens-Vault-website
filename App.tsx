@@ -15,7 +15,7 @@ import type { User } from './src/types/database.types';
 import {
     ShieldCheck, Users, Briefcase, Star, Crown, Lock, FileText, User as UserIcon, Mail, Loader,
     Menu, X, CheckCircle, Globe, Tag, ShieldAlert, Eye, EyeOff, Instagram as InstagramIcon, Twitter as TwitterIcon,
-    Linkedin as LinkedInIcon, MessageCircle
+    Linkedin as LinkedInIcon, MessageCircle, Search, ChevronRight, Settings, LogOut
 } from 'lucide-react';
 import { resetPassword, changePassword, deleteAccount } from './src/services/authService';
 import { FeedbackModal } from './src/components/FeedbackModal';
@@ -1171,57 +1171,390 @@ const ContactPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
 
 const ProfilePage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigate }) => {
     const { user, logout } = useAuth();
+    const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'settings'>('profile');
+    const [isEditing, setIsEditing] = useState(false);
+
+    // Profile State
+    const [name, setName] = useState(user?.name || '');
+    const [email, setEmail] = useState(user?.email || '');
+    const [phone, setPhone] = useState('');
+    const [location, setLocation] = useState('');
+
+    // Security State
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [passwordStatus, setPasswordStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+    const [passwordMsg, setPasswordMsg] = useState('');
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    useEffect(() => {
+        if (user) {
+            setName(user.name || '');
+            setEmail(user.email || '');
+        }
+    }, [user]);
 
     if (!user) {
         onNavigate('login');
         return null;
     }
 
+    const handleChangePassword = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (newPassword !== confirmPassword) {
+            setPasswordStatus('error');
+            setPasswordMsg('Passwords do not match');
+            return;
+        }
+        if (newPassword.length < 6) {
+            setPasswordStatus('error');
+            setPasswordMsg('Password must be at least 6 characters');
+            return;
+        }
+
+        setPasswordStatus('loading');
+        const result = await changePassword(newPassword);
+        if (result.success) {
+            setPasswordStatus('success');
+            setPasswordMsg('Password updated successfully');
+            setNewPassword('');
+            setConfirmPassword('');
+        } else {
+            setPasswordStatus('error');
+            setPasswordMsg(result.error || 'Failed to update password');
+        }
+    };
+
+    const handleDeleteAccount = async () => {
+        if (window.confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+            setIsDeleting(true);
+            const result = await deleteAccount();
+            if (result.success) {
+                await logout();
+                onNavigate('main');
+            } else {
+                alert(result.error || 'Failed to delete account');
+                setIsDeleting(false);
+            }
+        }
+    };
+
     return (
-        <section className="py-24 md:py-32 min-h-screen flex items-center justify-center">
-            <div className="container mx-auto px-6">
-                <BackButton onClick={() => onNavigate('main')} />
-                <div className="max-w-md mx-auto">
-                    <AnimatedSection>
-                        <div className="glass-card p-6 md:p-10 border border-forest-700/50">
-                            <div className="w-24 h-24 bg-forest-800 rounded-full mx-auto mb-6 flex items-center justify-center border-2 border-forest-accent shadow-lg shadow-forest-accent/20">
-                                <UserIcon className="w-12 h-12 text-forest-accent" />
-                            </div>
-                            <h2 className="text-3xl font-bold text-white mb-2 text-center">Welcome Back</h2>
-                            <p className="text-forest-300 mb-8 text-center text-lg">{user.name}</p>
-
-                            <div className="space-y-4 mb-8">
-                                <div className="bg-forest-900/50 p-5 rounded-2xl border border-forest-700/50 flex justify-between items-center">
-                                    <div>
-                                        <p className="text-xs text-forest-400 uppercase tracking-wider mb-1">Email</p>
-                                        <p className="text-white font-medium truncate max-w-[200px]">{user.email}</p>
-                                    </div>
-                                    <Mail className="w-5 h-5 text-forest-500" />
-                                </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="bg-forest-900/50 p-5 rounded-2xl border border-forest-700/50">
-                                        <p className="text-xs text-forest-400 uppercase tracking-wider mb-1">Plan</p>
-                                        <p className="text-forest-accent font-bold text-lg">{user.plan || 'Free'}</p>
-                                    </div>
-                                    <div className="bg-forest-900/50 p-5 rounded-2xl border border-forest-700/50">
-                                        <p className="text-xs text-forest-400 uppercase tracking-wider mb-1">Status</p>
-                                        <p className="text-green-400 font-bold text-lg">Active</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <button
-                                onClick={() => {
-                                    logout();
-                                    onNavigate('main');
-                                }}
-                                className="w-full py-4 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold rounded-xl transition-colors border border-red-500/20 flex items-center justify-center gap-2"
-                            >
-                                <Lock className="w-4 h-4" />
-                                Logout
-                            </button>
+        <section className="min-h-screen bg-forest-900 flex flex-col pt-20">
+            {/* Profile Header */}
+            <div className="bg-gradient-to-r from-forest-800 to-forest-900 pb-12 pt-8 px-6 md:px-12 shadow-lg relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-96 h-96 bg-forest-accent/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+                <div className="container mx-auto relative z-10">
+                    <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                        <div>
+                            <p className="text-forest-accent font-bold tracking-wider text-sm mb-2 uppercase">User Profile</p>
+                            <h1 className="text-4xl md:text-5xl font-bold text-white mb-2">Hello, {user.name.split(' ')[0]}</h1>
+                            <p className="text-forest-300 max-w-xl">
+                                This is your profile page. You can manage your personal information, security settings, and account preferences here.
+                            </p>
                         </div>
-                    </AnimatedSection>
+                        <div className="flex items-center gap-4">
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-forest-400" />
+                                <input
+                                    type="text"
+                                    placeholder="Search..."
+                                    className="bg-forest-900/50 border border-forest-700 rounded-full py-2 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-forest-accent w-48 md:w-64"
+                                />
+                            </div>
+                            <div className="flex items-center gap-2 bg-forest-800/50 p-1 pr-4 rounded-full border border-forest-700">
+                                <div className="w-8 h-8 bg-forest-accent rounded-full flex items-center justify-center text-forest-900 font-bold">
+                                    {user.name.charAt(0)}
+                                </div>
+                                <span className="text-white text-sm font-medium">{user.name}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="mt-8">
+                        <button
+                            onClick={() => { setActiveTab('profile'); setIsEditing(true); }}
+                            className="px-6 py-2 bg-forest-accent text-forest-900 font-bold rounded-lg hover:bg-white transition-colors shadow-lg shadow-forest-accent/20"
+                        >
+                            Edit Profile
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div className="container mx-auto px-4 md:px-6 py-8 flex-grow">
+                <div className="grid md:grid-cols-12 gap-8 h-full">
+                    {/* Sidebar Navigation */}
+                    <div className="md:col-span-3 lg:col-span-3">
+                        <div className="glass-card p-6 border border-forest-700/50 h-full flex flex-col">
+                            <div className="flex flex-col items-center mb-8">
+                                <div className="w-20 h-20 bg-forest-800 rounded-full flex items-center justify-center border-2 border-forest-accent mb-3">
+                                    <UserIcon className="w-10 h-10 text-forest-accent" />
+                                </div>
+                                <h3 className="text-white font-bold text-lg">{user.name}</h3>
+                                <p className="text-forest-400 text-sm">{user.email}</p>
+                            </div>
+
+                            <nav className="space-y-2 flex-grow">
+                                <button
+                                    onClick={() => setActiveTab('profile')}
+                                    className={`w-full flex items-center justify-between p-3 rounded-lg transition-all ${activeTab === 'profile' ? 'bg-forest-accent text-forest-900 font-bold shadow-md' : 'text-forest-300 hover:bg-forest-800 hover:text-white'}`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <UserIcon className="w-5 h-5" />
+                                        <span>My Profile</span>
+                                    </div>
+                                    <ChevronRight className={`w-4 h-4 ${activeTab === 'profile' ? 'opacity-100' : 'opacity-0'}`} />
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('security')}
+                                    className={`w-full flex items-center justify-between p-3 rounded-lg transition-all ${activeTab === 'security' ? 'bg-forest-accent text-forest-900 font-bold shadow-md' : 'text-forest-300 hover:bg-forest-800 hover:text-white'}`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <ShieldCheck className="w-5 h-5" />
+                                        <span>Security</span>
+                                    </div>
+                                    <ChevronRight className={`w-4 h-4 ${activeTab === 'security' ? 'opacity-100' : 'opacity-0'}`} />
+                                </button>
+                                <button
+                                    onClick={() => setActiveTab('settings')}
+                                    className={`w-full flex items-center justify-between p-3 rounded-lg transition-all ${activeTab === 'settings' ? 'bg-forest-accent text-forest-900 font-bold shadow-md' : 'text-forest-300 hover:bg-forest-800 hover:text-white'}`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <Settings className="w-5 h-5" />
+                                        <span>Settings</span>
+                                    </div>
+                                    <ChevronRight className={`w-4 h-4 ${activeTab === 'settings' ? 'opacity-100' : 'opacity-0'}`} />
+                                </button>
+                            </nav>
+
+                            <div className="mt-8 pt-6 border-t border-forest-700/50">
+                                <button
+                                    onClick={() => { logout(); onNavigate('main'); }}
+                                    className="w-full flex items-center gap-3 p-3 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                >
+                                    <LogOut className="w-5 h-5" />
+                                    <span>Log Out</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Main Content Area */}
+                    <div className="md:col-span-9 lg:col-span-9">
+                        <div className="glass-card p-8 border border-forest-700/50 h-full">
+                            {activeTab === 'profile' && (
+                                <div className="animate-fade-in">
+                                    <div className="flex justify-between items-center mb-8">
+                                        <h2 className="text-2xl font-bold text-white">My Account</h2>
+                                        <button className="px-4 py-2 bg-forest-800 text-forest-200 text-sm rounded-lg hover:bg-forest-700 transition-colors">
+                                            Settings
+                                        </button>
+                                    </div>
+
+                                    <div className="grid md:grid-cols-2 gap-8">
+                                        <div className="space-y-6">
+                                            <h3 className="text-sm font-bold text-forest-400 uppercase tracking-wider mb-4">User Information</h3>
+                                            <div>
+                                                <label className="block text-sm font-medium text-forest-300 mb-2">Full Name</label>
+                                                <input
+                                                    type="text"
+                                                    value={name}
+                                                    onChange={(e) => setName(e.target.value)}
+                                                    disabled={!isEditing}
+                                                    className="w-full bg-forest-900/50 border border-forest-600 rounded-lg py-3 px-4 text-white focus:outline-none focus:border-forest-accent disabled:opacity-50 disabled:cursor-not-allowed"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-forest-300 mb-2">Email Address</label>
+                                                <input
+                                                    type="email"
+                                                    value={email}
+                                                    onChange={(e) => setEmail(e.target.value)}
+                                                    disabled={!isEditing}
+                                                    className="w-full bg-forest-900/50 border border-forest-600 rounded-lg py-3 px-4 text-white focus:outline-none focus:border-forest-accent disabled:opacity-50 disabled:cursor-not-allowed"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-forest-300 mb-2">Phone Number</label>
+                                                <input
+                                                    type="tel"
+                                                    value={phone}
+                                                    onChange={(e) => setPhone(e.target.value)}
+                                                    placeholder="+1 (555) 000-0000"
+                                                    disabled={!isEditing}
+                                                    className="w-full bg-forest-900/50 border border-forest-600 rounded-lg py-3 px-4 text-white focus:outline-none focus:border-forest-accent disabled:opacity-50 disabled:cursor-not-allowed"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-forest-300 mb-2">Location</label>
+                                                <input
+                                                    type="text"
+                                                    value={location}
+                                                    onChange={(e) => setLocation(e.target.value)}
+                                                    placeholder="New York, USA"
+                                                    disabled={!isEditing}
+                                                    className="w-full bg-forest-900/50 border border-forest-600 rounded-lg py-3 px-4 text-white focus:outline-none focus:border-forest-accent disabled:opacity-50 disabled:cursor-not-allowed"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="bg-forest-800/30 p-6 rounded-2xl border border-forest-700/30 h-fit">
+                                            <div className="flex items-center justify-between mb-6">
+                                                <h3 className="text-lg font-bold text-white">Plan Status</h3>
+                                                <span className="px-3 py-1 bg-green-500/20 text-green-400 text-xs font-bold rounded-full border border-green-500/30">Active</span>
+                                            </div>
+                                            <div className="text-center mb-6">
+                                                <div className="w-24 h-24 bg-forest-900 rounded-full mx-auto mb-4 flex items-center justify-center border-2 border-forest-accent">
+                                                    <ShieldCheck className="w-12 h-12 text-forest-accent" />
+                                                </div>
+                                                <h4 className="text-xl font-bold text-white">{user.plan || 'Free Plan'}</h4>
+                                                <p className="text-forest-400 text-sm">Protected since {new Date().getFullYear()}</p>
+                                            </div>
+                                            <div className="flex justify-between text-center border-t border-forest-700/50 pt-6">
+                                                <div>
+                                                    <p className="text-2xl font-bold text-white">12</p>
+                                                    <p className="text-xs text-forest-400 uppercase">Scans</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-2xl font-bold text-white">0</p>
+                                                    <p className="text-xs text-forest-400 uppercase">Threats</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-2xl font-bold text-white">100%</p>
+                                                    <p className="text-xs text-forest-400 uppercase">Score</p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => onNavigate('pricing')}
+                                                className="w-full mt-6 py-3 bg-forest-accent text-forest-900 font-bold rounded-lg hover:bg-white transition-colors"
+                                            >
+                                                Upgrade Plan
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    {isEditing && (
+                                        <div className="mt-8 flex justify-end gap-4">
+                                            <button
+                                                onClick={() => setIsEditing(false)}
+                                                className="px-6 py-3 border border-forest-600 text-forest-300 font-bold rounded-lg hover:bg-forest-800 transition-colors"
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                onClick={() => { setIsEditing(false); /* Save logic here */ }}
+                                                className="px-6 py-3 bg-forest-accent text-forest-900 font-bold rounded-lg hover:bg-white transition-colors"
+                                            >
+                                                Save Changes
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {activeTab === 'security' && (
+                                <div className="animate-fade-in space-y-8">
+                                    <h2 className="text-2xl font-bold text-white mb-6">Security Settings</h2>
+
+                                    <div className="bg-forest-900/30 p-6 rounded-xl border border-forest-700/50">
+                                        <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                                            <Lock className="w-5 h-5 text-forest-accent" />
+                                            Change Password
+                                        </h3>
+                                        <form onSubmit={handleChangePassword} className="space-y-4 max-w-md">
+                                            <div>
+                                                <label className="block text-sm font-medium text-forest-300 mb-2">New Password</label>
+                                                <input
+                                                    type="password"
+                                                    value={newPassword}
+                                                    onChange={(e) => setNewPassword(e.target.value)}
+                                                    className="w-full bg-forest-900/50 border border-forest-600 rounded-lg py-3 px-4 text-white focus:outline-none focus:border-forest-accent"
+                                                    placeholder="••••••••"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-sm font-medium text-forest-300 mb-2">Confirm New Password</label>
+                                                <input
+                                                    type="password"
+                                                    value={confirmPassword}
+                                                    onChange={(e) => setConfirmPassword(e.target.value)}
+                                                    className="w-full bg-forest-900/50 border border-forest-600 rounded-lg py-3 px-4 text-white focus:outline-none focus:border-forest-accent"
+                                                    placeholder="••••••••"
+                                                />
+                                            </div>
+                                            {passwordMsg && (
+                                                <p className={`text-sm ${passwordStatus === 'success' ? 'text-green-400' : 'text-red-400'}`}>
+                                                    {passwordMsg}
+                                                </p>
+                                            )}
+                                            <button
+                                                type="submit"
+                                                disabled={passwordStatus === 'loading' || !newPassword}
+                                                className="px-6 py-3 bg-forest-accent text-forest-900 font-bold rounded-lg hover:bg-white transition-colors disabled:opacity-50"
+                                            >
+                                                {passwordStatus === 'loading' ? 'Updating...' : 'Update Password'}
+                                            </button>
+                                        </form>
+                                    </div>
+
+                                    <div className="bg-red-900/10 p-6 rounded-xl border border-red-900/30">
+                                        <h3 className="text-xl font-bold text-red-500 mb-4 flex items-center gap-2">
+                                            <ShieldAlert className="w-5 h-5" />
+                                            Danger Zone
+                                        </h3>
+                                        <p className="text-forest-300 mb-6 text-sm">
+                                            Deleting your account is permanent. All your data and protection history will be wiped.
+                                        </p>
+                                        <button
+                                            onClick={handleDeleteAccount}
+                                            disabled={isDeleting}
+                                            className="px-6 py-3 border border-red-500/50 text-red-400 font-bold rounded-lg hover:bg-red-500 hover:text-white transition-all"
+                                        >
+                                            {isDeleting ? 'Deleting...' : 'Delete Account'}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'settings' && (
+                                <div className="animate-fade-in space-y-6">
+                                    <h2 className="text-2xl font-bold text-white mb-6">App Settings</h2>
+
+                                    <div className="flex items-center justify-between p-4 bg-forest-900/30 rounded-xl border border-forest-700/50">
+                                        <div>
+                                            <h3 className="text-white font-bold">Dark Mode</h3>
+                                            <p className="text-forest-400 text-sm">Use dark theme for the interface</p>
+                                        </div>
+                                        <div className="w-12 h-6 bg-forest-accent rounded-full relative cursor-pointer">
+                                            <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm"></div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center justify-between p-4 bg-forest-900/30 rounded-xl border border-forest-700/50">
+                                        <div>
+                                            <h3 className="text-white font-bold">Email Notifications</h3>
+                                            <p className="text-forest-400 text-sm">Receive security alerts via email</p>
+                                        </div>
+                                        <div className="w-12 h-6 bg-forest-accent rounded-full relative cursor-pointer">
+                                            <div className="absolute right-1 top-1 w-4 h-4 bg-white rounded-full shadow-sm"></div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center justify-between p-4 bg-forest-900/30 rounded-xl border border-forest-700/50">
+                                        <div>
+                                            <h3 className="text-white font-bold">Language</h3>
+                                            <p className="text-forest-400 text-sm">Select your preferred language</p>
+                                        </div>
+                                        <select className="bg-forest-900 border border-forest-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-forest-accent">
+                                            <option>English (US)</option>
+                                            <option>French</option>
+                                            <option>Spanish</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
