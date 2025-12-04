@@ -1171,12 +1171,8 @@ const ContactPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
 
 const ProfilePage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigate }) => {
     const { user, logout } = useAuth();
-    const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'settings'>('profile');
+    const [activeTab, setActiveTab] = useState<'profile' | 'settings'>('profile');
     const [isEditing, setIsEditing] = useState(false);
-
-    // Settings State
-    const [darkMode, setDarkMode] = useState(true);
-    const [emailNotifications, setEmailNotifications] = useState(true);
 
     // Profile State
     const [name, setName] = useState(user?.name || '');
@@ -1309,16 +1305,7 @@ const ProfilePage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
                                     </div>
                                     <ChevronRight className={`w-4 h-4 ${activeTab === 'profile' ? 'opacity-100' : 'opacity-0'}`} />
                                 </button>
-                                <button
-                                    onClick={() => setActiveTab('security')}
-                                    className={`w-full flex items-center justify-between p-3 rounded-lg transition-all ${activeTab === 'security' ? 'bg-forest-accent text-forest-900 font-bold shadow-md' : 'text-forest-300 hover:bg-forest-800 hover:text-white'}`}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <ShieldCheck className="w-5 h-5" />
-                                        <span>Security</span>
-                                    </div>
-                                    <ChevronRight className={`w-4 h-4 ${activeTab === 'security' ? 'opacity-100' : 'opacity-0'}`} />
-                                </button>
+
                                 <button
                                     onClick={() => setActiveTab('settings')}
                                     className={`w-full flex items-center justify-between p-3 rounded-lg transition-all ${activeTab === 'settings' ? 'bg-forest-accent text-forest-900 font-bold shadow-md' : 'text-forest-300 hover:bg-forest-800 hover:text-white'}`}
@@ -1354,13 +1341,7 @@ const ProfilePage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
                                 <UserIcon className="w-4 h-4" />
                                 My Profile
                             </button>
-                            <button
-                                onClick={() => setActiveTab('security')}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-all ${activeTab === 'security' ? 'bg-forest-accent text-forest-900 font-bold' : 'bg-forest-800 text-forest-300 border border-forest-700'}`}
-                            >
-                                <ShieldCheck className="w-4 h-4" />
-                                Security
-                            </button>
+
                             <button
                                 onClick={() => setActiveTab('settings')}
                                 className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-all ${activeTab === 'settings' ? 'bg-forest-accent text-forest-900 font-bold' : 'bg-forest-800 text-forest-300 border border-forest-700'}`}
@@ -1548,9 +1529,9 @@ const ProfilePage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
                                 </div>
                             )}
 
-                            {activeTab === 'security' && (
+                            {activeTab === 'settings' && (
                                 <div className="animate-fade-in space-y-8">
-                                    <h2 className="text-2xl font-bold text-white mb-6">Security Settings</h2>
+                                    <h2 className="text-2xl font-bold text-white mb-6">Account Settings</h2>
 
                                     <div className="bg-forest-900/30 p-6 rounded-xl border border-forest-700/50">
                                         <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
@@ -1608,50 +1589,6 @@ const ProfilePage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
                                         >
                                             {isDeleting ? 'Deleting...' : 'Delete Account'}
                                         </button>
-                                    </div>
-                                </div>
-                            )}
-
-                            {activeTab === 'settings' && (
-                                <div className="animate-fade-in space-y-6">
-                                    <h2 className="text-2xl font-bold text-white mb-6">App Settings</h2>
-
-                                    <div className="flex items-center justify-between p-4 bg-forest-900/30 rounded-xl border border-forest-700/50">
-                                        <div>
-                                            <h3 className="text-white font-bold">Dark Mode</h3>
-                                            <p className="text-forest-400 text-sm">Use dark theme for the interface</p>
-                                        </div>
-                                        <button
-                                            onClick={() => setDarkMode(!darkMode)}
-                                            className={`w-12 h-6 rounded-full relative cursor-pointer transition-colors duration-300 ${darkMode ? 'bg-forest-accent' : 'bg-forest-700'}`}
-                                        >
-                                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-300 ${darkMode ? 'right-1' : 'left-1'}`}></div>
-                                        </button>
-                                    </div>
-
-                                    <div className="flex items-center justify-between p-4 bg-forest-900/30 rounded-xl border border-forest-700/50">
-                                        <div>
-                                            <h3 className="text-white font-bold">Email Notifications</h3>
-                                            <p className="text-forest-400 text-sm">Receive security alerts via email</p>
-                                        </div>
-                                        <button
-                                            onClick={() => setEmailNotifications(!emailNotifications)}
-                                            className={`w-12 h-6 rounded-full relative cursor-pointer transition-colors duration-300 ${emailNotifications ? 'bg-forest-accent' : 'bg-forest-700'}`}
-                                        >
-                                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-300 ${emailNotifications ? 'right-1' : 'left-1'}`}></div>
-                                        </button>
-                                    </div>
-
-                                    <div className="flex items-center justify-between p-4 bg-forest-900/30 rounded-xl border border-forest-700/50">
-                                        <div>
-                                            <h3 className="text-white font-bold">Language</h3>
-                                            <p className="text-forest-400 text-sm">Select your preferred language</p>
-                                        </div>
-                                        <select className="bg-forest-900 border border-forest-600 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-forest-accent">
-                                            <option>English (US)</option>
-                                            <option>French</option>
-                                            <option>Spanish</option>
-                                        </select>
                                     </div>
                                 </div>
                             )}
