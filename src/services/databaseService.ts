@@ -1,6 +1,7 @@
 // @ts-nocheck
 import { supabase } from '../lib/supabase';
-import type { User, Payment, ContactMessage, Feedback, SecurityStats } from '../types/database.types';
+import type { User, Payment, ContactMessage, Feedback, SecurityStats, Booking } from '../types/database.types';
+import { sendBookingConfirmation } from './emailService';
 
 /**
  * Update user's plan
@@ -315,6 +316,101 @@ export async function updateSecurityStats(
         return true;
     } catch (error) {
         console.error('Update security stats error:', error);
+        return false;
+    }
+}
+
+/**
+ * Create a new booking
+ */
+export async function createBooking(booking: {
+    userId: string;
+    planName: string;
+    bookingDate: string;
+    notes?: string;
+}): Promise<boolean> {
+    try {
+        const { error } = await supabase
+            .from('bookings')
+            .insert({
+                user_id: booking.userId,
+                plan_name: booking.planName,
+                booking_date: booking.bookingDate,
+                notes: booking.notes,
+                status: 'confirmed'
+            });
+
+        if (error) throw error;
+
+        // Fetch user email to send confirmation
+        const { data: userData } = await supabase.from('users').select('email, name').eq('id', booking.userId).single();
+
+        if (userData) {
+            await sendBookingConfirmation({
+                user_name: userData.name,
+                user_email: userData.email,
+                plan_name: booking.planName,
+                booking_date: new Date(booking.bookingDate).toLocaleString(),
+                notes: booking.notes
+            });
+        }
+
+        return true;
+    } catch (error) {
+        console.error('Create booking error:', error);
+        return false;
+    }
+}
+
+/**
+ * Get bookings for a user
+ */
+export async function getUserBookings(userId: string): Promise<Booking[]> {
+    try {
+        const { data, error } = await supabase
+            .from('bookings')
+            .select('*')
+            .eq('user_id', userId)
+            .order('booking_date', { ascending: true });
+
+        if (error) throw error;
+
+        return (data || []).map(b => ({
+            id: b.id,
+            userId: b.user_id,
+            planName: b.plan_name,
+            bookingDate: b.booking_date,
+            status: b.status,
+            notes: b.notes,
+            createdAt: b.created_at
+        }));
+    } catch (error) {
+        console.error('Get user bookings error:', error);
+        return [];
+    }
+}
+
+/**
+ * Update a booking (e.g. reschedule)
+ */
+export async function updateBooking(
+    bookingId: string,
+    updates: { bookingDate?: string; status?: 'confirmed' | 'cancelled' | 'rescheduled' }
+): Promise<boolean> {
+    try {
+        const dbUpdates: any = { updated_at: new Date().toISOString() };
+        if (updates.bookingDate) dbUpdates.booking_date = updates.bookingDate;
+        if (updates.status) dbUpdates.status = updates.status;
+
+        const { error } = await supabase
+            .from('bookings')
+            .update(dbUpdates)
+            .eq('id', bookingId);
+
+        if (error) throw error;
+        return true;
+    } catch (error) {
+        console.error('Update booking error:', error);
         return false;
     }
 }

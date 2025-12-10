@@ -140,6 +140,35 @@ export interface Database {
                     updated_at?: string;
                 };
             };
+            bookings: {
+                Row: {
+                    id: string;
+                    user_id: string;
+                    plan_name: string;
+                    booking_date: string;
+                    status: 'confirmed' | 'cancelled' | 'rescheduled';
+                    notes: string | null;
+                    created_at: string;
+                };
+                Insert: {
+                    id?: string;
+                    user_id: string;
+                    plan_name: string;
+                    booking_date: string;
+                    status?: 'confirmed' | 'cancelled' | 'rescheduled';
+                    notes?: string | null;
+                    created_at?: string;
+                };
+                Update: {
+                    id?: string;
+                    user_id?: string;
+                    plan_name?: string;
+                    booking_date?: string;
+                    status?: 'confirmed' | 'cancelled' | 'rescheduled';
+                    notes?: string | null;
+                    created_at?: string;
+                };
+            };
         };
         Views: {
             [_ in never]: never;
@@ -198,4 +227,16 @@ export interface SecurityStats {
     scansRun: number;
     threatsFound: number;
     lastScanDate: string;
+}
+
+export interface Booking {
+    id: string;
+    userId: string;
+    userName?: string;
+    userEmail?: string;
+    planName: string;
+    bookingDate: string;
+    status: 'confirmed' | 'cancelled' | 'rescheduled';
+    notes?: string;
+    createdAt: string;
 }

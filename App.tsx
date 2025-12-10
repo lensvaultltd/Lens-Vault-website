@@ -21,6 +21,7 @@ import { resetPassword, changePassword, deleteAccount } from './src/services/aut
 import { FeedbackModal } from './src/components/FeedbackModal';
 import AdminPage from './src/pages/AdminPage';
 import ProfilePage from './src/pages/ProfilePage';
+import BookingPage from './src/pages/BookingPage';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 
 declare global {
@@ -824,7 +825,7 @@ const ServicesPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavi
     );
 };
 
-const PricingPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigate }) => {
+const PricingPage: React.FC<{ onNavigate: (page: string) => void; onBookingSuccess: (data: { planName: string; isTeam: boolean }) => void }> = ({ onNavigate, onBookingSuccess }) => {
     const { user, updateUserPlan } = useAuth();
 
     type Plan = {
@@ -964,7 +965,15 @@ const PricingPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
                 });
             }
 
-            alert(`Payment successful! You have paid for: ${plan.name} - ${label}.`);
+            // Determine if it's a team plan
+            const isTeamPlan = ['Brand', 'Team / SME'].includes(plan.name);
+
+            // Trigger booking flow instead of simple alert
+            onBookingSuccess({
+                planName: plan.name,
+                isTeam: isTeamPlan
+            });
+            // alert(`Payment successful! You have paid for: ${plan.name} - ${label}.`);
         };
 
         const onClose = () => {
@@ -1484,6 +1493,7 @@ const SignupPage: React.FC<{ onNavigate: (page: string) => void }> = ({ onNaviga
 // --- Main App Component ---
 const App: React.FC = () => {
     const [currentPage, setCurrentPage] = React.useState('main');
+    const [bookingData, setBookingData] = React.useState<{ planName: string; isTeam: boolean } | null>(null);
 
     const handleNavigate = (page: string) => {
         setCurrentPage(page);
@@ -1497,7 +1507,15 @@ const App: React.FC = () => {
             case 'services':
                 return <ServicesPage onNavigate={handleNavigate} />;
             case 'pricing':
-                return <PricingPage onNavigate={handleNavigate} />;
+                return <PricingPage
+                    onNavigate={handleNavigate}
+                    onBookingSuccess={(data) => {
+                        setBookingData(data);
+                        handleNavigate('booking');
+                    }}
+                />;
+            case 'booking':
+                return <BookingPage onNavigate={handleNavigate} bookingData={bookingData} />;
             case 'contact':
                 return <ContactPage onNavigate={handleNavigate} />;
             case 'login':
