@@ -22,6 +22,7 @@ import { FeedbackModal } from './src/components/FeedbackModal';
 import AdminPage from './src/pages/AdminPage';
 import ProfilePage from './src/pages/ProfilePage';
 import BookingPage from './src/pages/BookingPage';
+import DownloadPage from './src/pages/DownloadPage';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
 
 declare global {
@@ -180,6 +181,10 @@ const Header: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigate }
                         Services
                         <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-forest-accent transition-all group-hover:w-full"></span>
                     </a>
+                    <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('download'); }} className="hover:text-forest-accent transition-colors relative group">
+                        Download
+                        <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-forest-accent transition-all group-hover:w-full"></span>
+                    </a>
                     <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('pricing'); }} className="hover:text-forest-accent transition-colors relative group">
                         Pricing
                         <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-forest-accent transition-all group-hover:w-full"></span>
@@ -212,6 +217,7 @@ const Header: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigate }
             <div className={`fixed inset-0 bg-forest-900/95 backdrop-blur-xl z-40 flex flex-col items-center justify-center space-y-8 transition-all duration-300 ${isMenuOpen ? 'opacity-100 visible' : 'opacity-0 invisible pointer-events-none'}`}>
                 <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('main'); }} className="text-3xl font-bold text-white hover:text-forest-accent transition-colors">Home</a>
                 <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('services'); }} className="text-3xl font-bold text-white hover:text-forest-accent transition-colors">Services</a>
+                <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('download'); }} className="text-3xl font-bold text-white hover:text-forest-accent transition-colors">Download</a>
                 <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('pricing'); }} className="text-3xl font-bold text-white hover:text-forest-accent transition-colors">Pricing</a>
                 <a href="#" onClick={(e) => { e.preventDefault(); handleNavigate('contact'); }} className="text-3xl font-bold text-white hover:text-forest-accent transition-colors">Contact</a>
                 {user && (
@@ -1526,6 +1532,8 @@ const App: React.FC = () => {
                 return <ProfilePage onNavigate={handleNavigate} />;
             case 'admin':
                 return <AdminPage onNavigate={handleNavigate} />;
+            case 'download':
+                return <DownloadPage onNavigate={handleNavigate} />;
             case 'main':
             default:
                 return <MainPage onNavigate={handleNavigate} />;
