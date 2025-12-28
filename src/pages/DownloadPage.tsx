@@ -135,7 +135,7 @@ const DownloadPage: React.FC<DownloadPageProps> = ({ onNavigate }) => {
                         description="Get Lens Vault on your Android phone or tablet"
                         requirements="Android 8.0 or later"
                         size="~15 MB"
-                        comingSoon={true}
+                        downloadUrl="/downloads/LensVault-Android.apk"
                     />
 
                     <PlatformCard
@@ -152,8 +152,8 @@ const DownloadPage: React.FC<DownloadPageProps> = ({ onNavigate }) => {
                         title="Windows"
                         description="Desktop app for Windows PCs"
                         requirements="Windows 10 or later"
-                        size="~50 MB"
-                        comingSoon={true}
+                        size="~100 MB"
+                        downloadUrl="/downloads/LensVault-Windows.zip"
                     />
 
                     <PlatformCard
