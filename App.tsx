@@ -23,7 +23,12 @@ import AdminPage from './src/pages/AdminPage';
 import ProfilePage from './src/pages/ProfilePage';
 import BookingPage from './src/pages/BookingPage';
 import DownloadPage from './src/pages/DownloadPage';
+import PrivacyPage from './src/pages/PrivacyPage';
+import TermsPage from './src/pages/TermsPage';
 import { AuthProvider, useAuth } from './src/context/AuthContext';
+import ErrorBoundary from './src/components/ErrorBoundary';
+import CookieConsent from './src/components/CookieConsent';
+import { analytics } from './src/lib/analytics';
 
 declare global {
     interface Window {
@@ -262,8 +267,8 @@ const Footer: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigate }
                     <h3 className="text-white font-bold mb-4 uppercase tracking-wider text-sm">Support</h3>
                     <ul className="space-y-2 text-forest-300">
                         <li><a href="#" className="hover:text-forest-accent transition-colors">Help Center</a></li>
-                        <li><a href="#" className="hover:text-forest-accent transition-colors">Privacy Policy</a></li>
-                        <li><a href="#" className="hover:text-forest-accent transition-colors">Terms of Service</a></li>
+                        <li><a href="#" onClick={(e) => { e.preventDefault(); onNavigate('privacy'); }} className="hover:text-forest-accent transition-colors cursor-pointer">Privacy Policy</a></li>
+                        <li><a href="#" onClick={(e) => { e.preventDefault(); onNavigate('terms'); }} className="hover:text-forest-accent transition-colors cursor-pointer">Terms of Service</a></li>
                         <li><a href="#" className="hover:text-forest-accent transition-colors">FAQ</a></li>
                     </ul>
                 </div>
@@ -288,8 +293,8 @@ const Footer: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigate }
             <div className="border-t border-forest-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-forest-400">
                 <p>&copy; {new Date().getFullYear()} Lens Vault Ltd. All rights reserved.</p>
                 <div className="flex gap-6">
-                    <a href="#" className="hover:text-white transition-colors">Privacy</a>
-                    <a href="#" className="hover:text-white transition-colors">Terms</a>
+                    <a href="#" onClick={(e) => { e.preventDefault(); onNavigate('privacy'); }} className="hover:text-white transition-colors cursor-pointer">Privacy</a>
+                    <a href="#" onClick={(e) => { e.preventDefault(); onNavigate('terms'); }} className="hover:text-white transition-colors cursor-pointer">Terms</a>
                     <a href="#" className="hover:text-white transition-colors">Cookies</a>
                 </div>
             </div>
@@ -1534,6 +1539,10 @@ const App: React.FC = () => {
                 return <AdminPage onNavigate={handleNavigate} />;
             case 'download':
                 return <DownloadPage onNavigate={handleNavigate} />;
+            case 'privacy':
+                return <PrivacyPage onNavigate={handleNavigate} />;
+            case 'terms':
+                return <TermsPage onNavigate={handleNavigate} />;
             case 'main':
             default:
                 return <MainPage onNavigate={handleNavigate} />;
@@ -1541,32 +1550,45 @@ const App: React.FC = () => {
     };
 
     return (
-        <AuthProvider>
-            <div className="flex flex-col min-h-screen relative">
-                <AnimatedBackground />
-                {currentPage !== 'admin' && <Header onNavigate={handleNavigate} />}
-                <main className="flex-grow relative z-10">
-                    {renderPage()}
-                </main>
-                {currentPage !== 'admin' && <Footer onNavigate={handleNavigate} />}
+        <ErrorBoundary>
+            <AuthProvider>
+                <div className="flex flex-col min-h-screen relative">
+                    <AnimatedBackground />
+                    {currentPage !== 'admin' && <Header onNavigate={handleNavigate} />}
+                    <main className="flex-grow relative z-10">
+                        {renderPage()}
+                    </main>
+                    {currentPage !== 'admin' && <Footer onNavigate={handleNavigate} />}
 
-                {/* Feedback Button */}
-                {currentPage !== 'admin' && (
-                    <button
-                        onClick={() => setIsFeedbackOpen(true)}
-                        className="fixed bottom-6 right-6 z-50 bg-forest-accent text-forest-900 font-bold py-3 px-6 rounded-full shadow-lg hover:bg-white transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
-                    >
-                        <MessageCircle className="w-5 h-5" />
-                        Feedback
-                    </button>
-                )}
+                    {/* Feedback Button */}
+                    {currentPage !== 'admin' && (
+                        <button
+                            onClick={() => setIsFeedbackOpen(true)}
+                            className="fixed bottom-6 right-6 z-50 bg-forest-accent text-forest-900 font-bold py-3 px-6 rounded-full shadow-lg hover:bg-white transition-all duration-300 transform hover:scale-105 flex items-center gap-2"
+                        >
+                            <MessageCircle className="w-5 h-5" />
+                            Feedback
+                        </button>
+                    )}
 
-                <FeedbackModal
-                    isOpen={isFeedbackOpen}
-                    onClose={() => setIsFeedbackOpen(false)}
-                />
-            </div>
-        </AuthProvider>
+                    <FeedbackModal
+                        isOpen={isFeedbackOpen}
+                        onClose={() => setIsFeedbackOpen(false)}
+                    />
+
+                    {/* Cookie Consent Banner */}
+                    <CookieConsent
+                        onAccept={() => {
+                            analytics.init();
+                            analytics.event({ category: 'Cookie', action: 'Accepted' });
+                        }}
+                        onDecline={() => {
+                            analytics.event({ category: 'Cookie', action: 'Declined' });
+                        }}
+                    />
+                </div>
+            </AuthProvider>
+        </ErrorBoundary>
     );
 };
 
