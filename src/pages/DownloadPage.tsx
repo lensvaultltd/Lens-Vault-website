@@ -1,5 +1,5 @@
 import React from 'react';
-import { Smartphone, Monitor, Globe, Download, CheckCircle, Shield, Users, Zap, ChevronRight } from 'lucide-react';
+import { Smartphone, Monitor, Globe, Download, CheckCircle, Shield, Users, Zap, ChevronRight, Chrome } from 'lucide-react';
 
 interface DownloadPageProps {
     onNavigate: (page: string) => void;
@@ -10,10 +10,11 @@ interface PlatformCardProps {
     title: string;
     description: string;
     requirements: string;
-    size: string;
+    size?: string;
     downloadUrl?: string;
     storeUrl?: string;
     comingSoon?: boolean;
+    primary?: boolean;
 }
 
 const PlatformCard: React.FC<PlatformCardProps> = ({
@@ -24,19 +25,23 @@ const PlatformCard: React.FC<PlatformCardProps> = ({
     size,
     downloadUrl,
     storeUrl,
-    comingSoon
+    comingSoon,
+    primary
 }) => (
-    <div className="glass-card p-8 hover:transform hover:-translate-y-2 transition-all duration-300 border border-forest-700/30">
+    <div className={`glass-card p-8 hover:transform hover:-translate-y-2 transition-all duration-300 border ${primary ? 'border-forest-accent shadow-[0_0_30px_rgba(6,182,212,0.15)] ring-1 ring-forest-accent/50' : 'border-forest-700/30'}`}>
         <div className="flex items-start gap-6 mb-6">
-            <div className="p-4 bg-forest-800 text-forest-accent rounded-2xl flex-shrink-0">
+            <div className={`p-4 rounded-2xl flex-shrink-0 ${primary ? 'bg-forest-accent text-forest-900' : 'bg-forest-800 text-forest-accent'}`}>
                 {icon}
             </div>
             <div className="flex-grow">
-                <h3 className="text-2xl font-bold text-white mb-2">{title}</h3>
+                <h3 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
+                    {title}
+                    {primary && <span className="bg-forest-accent text-forest-900 text-xs px-2 py-1 rounded-full font-bold">RECOMMENDED</span>}
+                </h3>
                 <p className="text-forest-200 mb-4">{description}</p>
                 <div className="space-y-2 text-sm text-forest-300">
                     <p><strong className="text-white">Requirements:</strong> {requirements}</p>
-                    <p><strong className="text-white">Size:</strong> {size}</p>
+                    {size && <p><strong className="text-white">Size:</strong> {size}</p>}
                 </div>
             </div>
         </div>
@@ -50,10 +55,11 @@ const PlatformCard: React.FC<PlatformCardProps> = ({
                 {downloadUrl && (
                     <a
                         href={downloadUrl}
-                        className="flex items-center justify-center gap-2 bg-forest-accent hover:bg-white text-forest-900 font-bold py-3 px-6 rounded-full transition-all shadow-lg hover:shadow-xl"
+                        target={downloadUrl.startsWith('http') ? '_blank' : undefined}
+                        className={`flex items-center justify-center gap-2 font-bold py-3 px-6 rounded-full transition-all shadow-lg hover:shadow-xl ${primary ? 'bg-forest-accent hover:bg-white text-forest-900' : 'bg-forest-800 hover:bg-forest-700 text-white'}`}
                     >
                         <Download className="w-5 h-5" />
-                        Download Now
+                        {primary ? 'Launch Web App' : 'Download Now'}
                     </a>
                 )}
                 {storeUrl && (
@@ -114,57 +120,62 @@ const DownloadPage: React.FC<DownloadPageProps> = ({ onNavigate }) => {
                 <div className="text-center mb-16">
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-forest-800/50 border border-forest-700 mb-6">
                         <Download className="w-5 h-5 text-forest-accent" />
-                        <span className="text-forest-200 text-sm font-medium">Available on All Platforms</span>
+                        <span className="text-forest-200 text-sm font-medium">Get Lens Vault</span>
                     </div>
 
                     <h1 className="text-5xl md:text-6xl font-bold text-white mb-6">
-                        Download Lens Vault
+                        Download & Access
                     </h1>
 
                     <p className="text-xl text-forest-200 max-w-3xl mx-auto leading-relaxed">
-                        Secure your passwords across all your devices. Military-grade encryption,
-                        satellite verification, and family sharing — all in one app.
+                        Access your vault from anywhere. Start with the Web App for instant access, install the Extension for seamless autofill, or get the Desktop app for offline power.
                     </p>
                 </div>
 
                 {/* Platform Cards */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-20">
-                    <PlatformCard
-                        icon={<Smartphone className="w-8 h-8" />}
-                        title="Android"
-                        description="Get Lens Vault on your Android phone or tablet"
-                        requirements="Android 8.0 or later"
-                        size="~15 MB"
-                        downloadUrl="/downloads/LensVault-Android.apk"
-                    />
-
-                    <PlatformCard
-                        icon={<Smartphone className="w-8 h-8" />}
-                        title="iOS"
-                        description="Download from the App Store for iPhone and iPad"
-                        requirements="iOS 13.0 or later"
-                        size="~20 MB"
-                        comingSoon={true}
-                    />
-
-                    <PlatformCard
-                        icon={<Monitor className="w-8 h-8" />}
-                        title="Windows"
-                        description="Desktop app for Windows PCs"
-                        requirements="Windows 10 or later"
-                        size="~100 MB"
-                        downloadUrl="/downloads/LensVault-Windows.zip"
-                    />
-
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-20 max-w-5xl mx-auto">
+                    {/* 1. Web App (Top Priority) */}
                     <PlatformCard
                         icon={<Globe className="w-8 h-8" />}
-                        title="Browser Extension"
-                        description="Add to Chrome, Edge, Brave, or Opera"
-                        requirements="Chrome 88+, Edge 88+"
-                        size="~2 MB"
-                        storeUrl="https://chrome.google.com/webstore"
+                        title="Web App"
+                        description="Instant access from any browser. No installation required."
+                        requirements="Modern Browser (Chome, Edge, Safari)"
+                        downloadUrl="https://lens-vault.vercel.app"
+                        primary={true}
                     />
+
+                    {/* 2. Desktop App */}
+                    <PlatformCard
+                        icon={<Monitor className="w-8 h-8" />}
+                        title="Windows Desktop"
+                        description="Native application for Windows PCs. Offline access enabled."
+                        requirements="Windows 10 or later"
+                        size="~100 MB"
+                        downloadUrl="#" // Placeholder for user to fill or update
+                    />
+
+                    {/* 3. Browser Extension */}
+                    <PlatformCard
+                        icon={<Chrome className="w-8 h-8" />}
+                        title="Browser Extension"
+                        description="Seamless autofill and login detection."
+                        requirements="Chrome, Edge, Brave"
+                        size="~2 MB"
+                        storeUrl="https://chrome.google.com/webstore" // Placeholder
+                    />
+
+                    {/* 4. Mobile Apps (Coming Soon) */}
+                    <div className="glass-card p-8 border border-forest-700/30 flex flex-col justify-center items-center text-center opacity-80">
+                        <Smartphone className="w-12 h-12 text-forest-400 mb-4" />
+                        <h3 className="text-2xl font-bold text-white mb-2">Mobile Apps</h3>
+                        <p className="text-forest-200 mb-6">Android & iOS</p>
+                        <div className="bg-forest-800/50 border border-forest-700 rounded-full py-2 px-8">
+                            <span className="text-forest-accent font-semibold tracking-wider">COMING SOON</span>
+                        </div>
+                    </div>
                 </div>
+
+                {/* Legacy Mobile Cards (Hidden or Merged above) - Keeping code clean */}
 
                 {/* Features Grid */}
                 <div className="mb-20">
@@ -185,35 +196,6 @@ const DownloadPage: React.FC<DownloadPageProps> = ({ onNavigate }) => {
                                 <p className="text-sm text-forest-200">{feature.description}</p>
                             </div>
                         ))}
-                    </div>
-                </div>
-
-                {/* Security Trust Section */}
-                <div className="glass-card p-8 md:p-12 mb-20 border border-forest-700/30">
-                    <div className="text-center mb-8">
-                        <Shield className="w-16 h-16 text-forest-accent mx-auto mb-4" />
-                        <h2 className="text-3xl font-bold text-white mb-4">
-                            Built by Cybersecurity Experts
-                        </h2>
-                        <p className="text-forest-200 max-w-2xl mx-auto">
-                            Lens Vault is developed by a trusted cybersecurity firm serving enterprises worldwide.
-                            We bring professional-grade security to your personal password management.
-                        </p>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div className="flex items-center gap-3 text-forest-200">
-                            <CheckCircle className="w-6 h-6 text-green-400 flex-shrink-0" />
-                            <span>Zero-knowledge architecture</span>
-                        </div>
-                        <div className="flex items-center gap-3 text-forest-200">
-                            <CheckCircle className="w-6 h-6 text-green-400 flex-shrink-0" />
-                            <span>End-to-end encryption</span>
-                        </div>
-                        <div className="flex items-center gap-3 text-forest-200">
-                            <CheckCircle className="w-6 h-6 text-green-400 flex-shrink-0" />
-                            <span>Regular security audits</span>
-                        </div>
                     </div>
                 </div>
 
