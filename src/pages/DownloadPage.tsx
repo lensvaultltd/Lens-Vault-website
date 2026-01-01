@@ -133,46 +133,47 @@ const DownloadPage: React.FC<DownloadPageProps> = ({ onNavigate }) => {
                 </div>
 
                 {/* Platform Cards */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-20 max-w-5xl mx-auto">
-                    {/* 1. Web App (Top Priority) */}
+                {/* Platform Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-20 max-w-4xl mx-auto">
+                    {/* 1. Web App + Extension (Primary) */}
                     <PlatformCard
                         icon={<Globe className="w-8 h-8" />}
-                        title="Web App"
-                        description="Instant access from any browser. No installation required."
-                        requirements="Modern Browser (Chome, Edge, Safari)"
-                        downloadUrl="https://lens-vault.vercel.app"
+                        title="Web Vault + Extension"
+                        description="Access your vault instantly. Installation includes browser extension."
+                        requirements="Chrome, Edge, Brave"
+                        downloadUrl="https://lens-vault-app.vercel.app"
                         primary={true}
                     />
 
-                    {/* 2. Desktop App */}
+                    {/* 2. macOS Desktop (Coming Soon) */}
+                    <PlatformCard
+                        icon={<Monitor className="w-8 h-8" />}
+                        title="macOS Desktop"
+                        description="Native experience for MacBook and iMac with TouchID."
+                        requirements="macOS 12+"
+                        comingSoon={true}
+                        requirements="" // Empty requirements for coming soon
+                    />
+
+                    {/* 3. Windows Desktop (Coming Soon) */}
                     <PlatformCard
                         icon={<Monitor className="w-8 h-8" />}
                         title="Windows Desktop"
-                        description="Native application for Windows PCs. Offline access enabled."
-                        requirements="Windows 10 or later"
-                        size="~100 MB"
-                        downloadUrl="https://github.com/lensvaultltd/Lens-Vault/actions/runs/20632101546/artifacts/5001400013"
-                    />
-
-                    {/* 3. Browser Extension */}
-                    <PlatformCard
-                        icon={<Chrome className="w-8 h-8" />}
-                        title="Browser Extension"
-                        description="Seamless autofill and login detection."
-                        requirements="Chrome, Edge, Brave"
-                        size="~2 MB"
-                        storeUrl="https://chrome.google.com/webstore" // Placeholder
+                        description="Native application with Windows Hello integration."
+                        requirements="Windows 10/11"
+                        comingSoon={true}
+                        requirements=""
                     />
 
                     {/* 4. Mobile Apps (Coming Soon) */}
-                    <div className="glass-card p-8 border border-forest-700/30 flex flex-col justify-center items-center text-center opacity-80">
-                        <Smartphone className="w-12 h-12 text-forest-400 mb-4" />
-                        <h3 className="text-2xl font-bold text-white mb-2">Mobile Apps</h3>
-                        <p className="text-forest-200 mb-6">Android & iOS</p>
-                        <div className="bg-forest-800/50 border border-forest-700 rounded-full py-2 px-8">
-                            <span className="text-forest-accent font-semibold tracking-wider">COMING SOON</span>
-                        </div>
-                    </div>
+                    <PlatformCard
+                        icon={<Smartphone className="w-8 h-8" />}
+                        title="Mobile App"
+                        description="Biometric unlock and auto-fill for iOS & Android."
+                        requirements="iOS & Android"
+                        comingSoon={true}
+                        requirements=""
+                    />
                 </div>
 
                 {/* Legacy Mobile Cards (Hidden or Merged above) - Keeping code clean */}
