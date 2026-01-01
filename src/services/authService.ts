@@ -37,10 +37,11 @@ export async function signUpWithEmail(
 
         // 2. Create user profile in database
         // Note: Ideally, use a database trigger to auto-create profile
-        // For now, we'll do it manually
+        // For now, we'll do it manually to ensure immediate availability
         const { data: profileData, error: profileError } = await supabase
             .from('users')
             .insert({
+                id: data.user.id, // CRITICAL: Map Auth ID to User ID
                 auth_id: data.user.id,
                 email,
                 name,
@@ -51,7 +52,29 @@ export async function signUpWithEmail(
 
         if (profileError) {
             console.error('Failed to create profile:', profileError);
-            // Delete auth user if profile creation fails
+            // If it failed because it already exists (trigger race condition), try fetching it
+            if (profileError.code === '23505') { // Unique violation
+                 const { data: existingProfile } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('auth_id', data.user.id)
+                    .single();
+                
+                 if (existingProfile) {
+                     return {
+                        success: true,
+                        user: {
+                            id: existingProfile.id,
+                            email: existingProfile.email,
+                            name: existingProfile.name,
+                            plan: existingProfile.plan || undefined,
+                            walletAddress: existingProfile.wallet_address || undefined
+                        }
+                    };
+                 }
+            }
+
+            // Delete auth user if profile creation fails and it's not a duplicate
             await supabase.auth.admin.deleteUser(data.user.id);
             throw new Error('Account created but failed to set up profile. Please contact support.');
         }

@@ -1,21 +1,72 @@
--- Enable UUID extension
+-- ==============================================================================
+-- LENS VAULT - FINAL FIX SCHEMA
+-- ==============================================================================
+-- This script FIXES the "operator does not exist: uuid = text" error.
+-- It recreates the secondary tables to ensure they match the main 'users' table.
+-- DATA WARNING: This will reset bookings, payments, and stats to ensure a clean slate.
+-- USERS DATA IS ACCURATE AND SAFE.
+
+-- 1. EXTENSIONS
 create extension if not exists "uuid-ossp";
 
--- Create users table
-create table if not exists users (
-  id text primary key, -- Firebase UID is text
+-- 2. CLEANUP MISMATCHED TABLES
+-- We drop these to guarantee they are created with the correct TEXT columns
+drop table if exists public.bookings;
+drop table if exists public.payments;
+drop table if exists public.security_stats;
+drop table if exists public.contact_messages;
+drop table if exists public.feedback;
+
+-- 3. USERS TABLE (Preserve Data)
+create table if not exists public.users (
+  id text primary key,
   email text unique not null,
   name text not null,
   wallet_address text unique,
-  plan text,
+  plan text default 'Free',
+  email_notifications boolean default true,
   created_at timestamp with time zone default now(),
   updated_at timestamp with time zone default now()
 );
 
--- Create payments table
-create table if not exists payments (
-  id uuid primary key default uuid_generate_v4(),
-  user_id text references users(id) on delete cascade, -- Changed to text
+-- Safely add auth_id if missing
+do $$
+begin
+  if not exists (select 1 from information_schema.columns where table_schema = 'public' and table_name = 'users' and column_name = 'auth_id') then
+    alter table public.users add column auth_id uuid references auth.users(id) on delete cascade;
+  end if;
+end $$;
+
+-- Safely add unique constraint
+do $$
+begin
+  if not exists (select 1 from pg_constraint where conname = 'unique_auth_id') then
+    alter table public.users add constraint unique_auth_id unique (auth_id);
+  end if;
+end $$;
+
+create index if not exists idx_users_auth_id on public.users(auth_id);
+create index if not exists idx_users_email on public.users(email);
+
+-- 4. BOOKINGS TABLE (Recreated Correctly)
+create table public.bookings (
+  id uuid primary key default gen_random_uuid(),
+  user_id text references public.users(id) on delete cascade not null, -- TEXT to match users.id
+  plan_name text not null,
+  booking_date timestamp with time zone not null,
+  status text check (status in ('confirmed', 'cancelled', 'rescheduled')) default 'confirmed',
+  notes text,
+  created_at timestamp with time zone default now() not null,
+  updated_at timestamp with time zone default now() not null
+);
+
+create index idx_bookings_user_id on public.bookings(user_id);
+create index idx_bookings_date on public.bookings(booking_date desc);
+
+-- 5. PAYMENTS TABLE (Recreated Correctly)
+create table public.payments (
+  id uuid primary key default gen_random_uuid(),
+  user_id text references public.users(id) on delete cascade not null, -- TEXT to match users.id
   plan_name text not null,
   amount integer not null,
   payment_type text not null check (payment_type in ('setup', 'retainer')),
@@ -24,72 +75,118 @@ create table if not exists payments (
   created_at timestamp with time zone default now()
 );
 
--- Create contact_messages table
-create table if not exists contact_messages (
-  id uuid primary key default uuid_generate_v4(),
+create index idx_payments_user_id on public.payments(user_id);
+create index idx_payments_reference on public.payments(reference);
+
+-- 6. SECURITY STATS TABLE (Recreated Correctly)
+create table public.security_stats (
+  id uuid primary key default gen_random_uuid(),
+  user_id text references public.users(id) on delete cascade not null, -- TEXT to match users.id
+  security_score integer default 0,
+  scans_run integer default 0,
+  threats_found integer default 0,
+  last_scan_date timestamp with time zone,
+  updated_at timestamp with time zone default now() not null,
+  constraint unique_user_stats unique (user_id)
+);
+
+-- 7. PUBLIC FORM TABLES
+create table public.contact_messages (
+  id uuid primary key default gen_random_uuid(),
   name text not null,
   email text not null,
   message text not null,
   created_at timestamp with time zone default now()
 );
 
--- Create indexes for better query performance
-create index if not exists idx_users_email on users(email);
-create index if not exists idx_users_wallet on users(wallet_address);
-create index if not exists idx_payments_user_id on payments(user_id);
-create index if not exists idx_payments_reference on payments(reference);
-create index if not exists idx_contact_messages_created_at on contact_messages(created_at desc);
+create table public.feedback (
+  id uuid primary key default gen_random_uuid(),
+  user_id text references public.users(id) on delete set null,
+  message text not null,
+  rating integer,
+  created_at timestamp with time zone default now()
+);
 
--- Enable Row Level Security (RLS)
-alter table users enable row level security;
-alter table payments enable row level security;
-alter table contact_messages enable row level security;
+-- 8. ENABLE RLS
+alter table public.users enable row level security;
+alter table public.bookings enable row level security;
+alter table public.payments enable row level security;
+alter table public.security_stats enable row level security;
+alter table public.contact_messages enable row level security;
+alter table public.feedback enable row level security;
 
--- RLS Policies for users table
--- Note: We cannot use auth.uid() directly for RLS if we are using Firebase Auth 
--- UNLESS we are using Supabase Custom Auth or if we just allow public reads/writes for now 
--- and handle security in the backend/API. 
--- BUT since we are doing client-side inserts, we need a policy.
--- For strict separation without Supabase Auth, we might need to use a Service Key on the server 
--- OR allow public insert/select for now (NOT SECURE for production but works for dev).
--- A better approach for production: Use Firebase ID Token verification in a Supabase Edge Function.
--- For this "MVP" stage with client-side logic:
--- We will allow public insert (for signup).
--- We will allow public select (so users can fetch their profile).
--- Ideally, we'd filter by ID, but without Supabase Auth context, we can't enforce "my own profile" easily in RLS.
+-- 9. RESET POLICIES
+-- Clean sweep of old policies
+drop policy if exists "Users can view own profile" on public.users;
+drop policy if exists "Users can update own profile" on public.users;
+drop policy if exists "Enable insert for signup" on public.users;
+drop policy if exists "Users can view own profile via auth_id" on public.users;
 
-create policy "Enable read access for all users"
-  on users for select
-  using (true);
+drop policy if exists "Users can view own bookings" on public.bookings;
+drop policy if exists "Users can insert own bookings" on public.bookings;
+drop policy if exists "Users can update own bookings" on public.bookings;
+drop policy if exists "Users can delete own bookings" on public.bookings;
 
-create policy "Enable insert for all users"
-  on users for insert
-  with check (true);
+drop policy if exists "Users can view own payments" on public.payments;
+drop policy if exists "Users can insert own payments" on public.payments;
 
-create policy "Enable update for all users"
-  on users for update
-  using (true);
+drop policy if exists "Users can view own stats" on public.security_stats;
+drop policy if exists "Users can update own stats" on public.security_stats;
+drop policy if exists "Users can insert own stats" on public.security_stats;
 
--- RLS Policies for payments table
-create policy "Enable read access for all users"
-  on payments for select
-  using (true);
+drop policy if exists "Anyone can submit contact message" on public.contact_messages;
+drop policy if exists "Anyone can submit feedback" on public.feedback;
 
-create policy "Enable insert for all users"
-  on payments for insert
-  with check (true);
+-- 10. REAPPLY POLICIES (With Safe Casts just in case)
 
--- RLS Policies for contact_messages table
-create policy "Anyone can insert contact messages"
-  on contact_messages for insert
-  with check (true);
+-- USERS
+create policy "Users can view own profile" on public.users
+  for select using (auth.uid() = auth_id);
 
--- Only authenticated users can view contact messages (admin feature)
-create policy "Authenticated users can view contact messages"
-  on contact_messages for select
-  using (auth.role() = 'authenticated');
+create policy "Users can update own profile" on public.users
+  for update using (auth.uid() = auth_id);
 
--- Create a function to update updated_at timestamp
+create policy "Enable insert for signup" on public.users
+  for insert with check (auth.uid() = auth_id);
+
+-- BOOKINGS
+create policy "Users can view own bookings" on public.bookings
+  for select using (user_id in (select id from public.users where auth_id = auth.uid()));
+
+create policy "Users can insert own bookings" on public.bookings
+  for insert with check (user_id in (select id from public.users where auth_id = auth.uid()));
+
+create policy "Users can update own bookings" on public.bookings
+  for update using (user_id in (select id from public.users where auth_id = auth.uid()));
+
+create policy "Users can delete own bookings" on public.bookings
+  for delete using (user_id in (select id from public.users where auth_id = auth.uid()));
+
+-- PAYMENTS
+create policy "Users can view own payments" on public.payments
+  for select using (user_id in (select id from public.users where auth_id = auth.uid()));
+
+create policy "Users can insert own payments" on public.payments
+  for insert with check (user_id in (select id from public.users where auth_id = auth.uid()));
+
+-- SECURITY STATS
+create policy "Users can view own stats" on public.security_stats
+  for select using (user_id in (select id from public.users where auth_id = auth.uid()));
+
+create policy "Users can update own stats" on public.security_stats
+  for update using (user_id in (select id from public.users where auth_id = auth.uid()));
+
+create policy "Users can insert own stats" on public.security_stats
+  for insert with check (user_id in (select id from public.users where auth_id = auth.uid()));
+
+-- PUBLIC FORMS
+create policy "Anyone can submit contact message" on public.contact_messages
+  for insert with check (true);
+
+create policy "Anyone can submit feedback" on public.feedback
+  for insert with check (true);
+
+-- 11. AUTOMATION (Triggers)
 create or replace function update_updated_at_column()
 returns trigger as $$
 begin
@@ -98,28 +195,67 @@ begin
 end;
 $$ language plpgsql;
 
--- Create trigger to automatically update updated_at
-create trigger update_users_updated_at
-  before update on users
-  for each row
-  execute function update_updated_at_column();
+drop trigger if exists update_users_updated_at on public.users;
+create trigger update_users_updated_at before update on public.users
+  for each row execute function update_updated_at_column();
 
--- Create feedback table
-create table if not exists feedback (
-  id uuid primary key default uuid_generate_v4(),
-  user_id text references users(id) on delete set null,
-  message text not null,
-  rating integer,
-  created_at timestamp with time zone default now()
-);
+drop trigger if exists update_bookings_updated_at on public.bookings;
+create trigger update_bookings_updated_at before update on public.bookings
+  for each row execute function update_updated_at_column();
 
--- RLS Policies for feedback table
-create policy "Anyone can insert feedback"
-  on feedback for insert
-  with check (true);
+drop trigger if exists update_security_stats_updated_at on public.security_stats;
+create trigger update_security_stats_updated_at before update on public.security_stats
+  for each row execute function update_updated_at_column();
 
-create policy "Authenticated users can view feedback"
-  on feedback for select
-  using (auth.role() = 'authenticated');
+-- 12. REAL-TIME REPLICATION (Robust)
+do $$
+begin
+  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and tablename = 'users') then
+    alter publication supabase_realtime add table public.users;
+  end if;
+end $$;
 
-create index if not exists idx_feedback_created_at on feedback(created_at desc);
+do $$
+begin
+  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and tablename = 'bookings') then
+    alter publication supabase_realtime add table public.bookings;
+  end if;
+end $$;
+
+do $$
+begin
+  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and tablename = 'payments') then
+    alter publication supabase_realtime add table public.payments;
+  end if;
+end $$;
+
+do $$
+begin
+  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and tablename = 'security_stats') then
+    alter publication supabase_realtime add table public.security_stats;
+  end if;
+end $$;
+
+-- 13. HANDLE NEW USER CREATION (Trigger)
+create or replace function public.handle_new_user()
+returns trigger as $$
+begin
+  insert into public.users (id, auth_id, email, name, plan)
+  values (
+    new.id::text, 
+    new.id,
+    new.email,
+    coalesce(new.raw_user_meta_data->>'name', 'User'),
+    'Free'
+  )
+  on conflict (id) do nothing;
+  return new;
+end;
+$$ language plpgsql security definer;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
+
+-- SUCCESS
