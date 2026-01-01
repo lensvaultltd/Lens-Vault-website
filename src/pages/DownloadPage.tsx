@@ -151,7 +151,7 @@ const DownloadPage: React.FC<DownloadPageProps> = ({ onNavigate }) => {
                         description="Native application for Windows PCs. Offline access enabled."
                         requirements="Windows 10 or later"
                         size="~100 MB"
-                        downloadUrl="#" // Placeholder for user to fill or update
+                        downloadUrl="https://github.com/lensvaultltd/Lens-Vault/actions/runs/20632101546/artifacts/5001400013"
                     />
 
                     {/* 3. Browser Extension */}
