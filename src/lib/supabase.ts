@@ -12,6 +12,23 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
     auth: {
         autoRefreshToken: true,
         persistSession: true,
-        detectSessionInUrl: true
+        detectSessionInUrl: true,
+        storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+        flowType: 'pkce', // More secure auth flow
+    },
+    realtime: {
+        params: {
+            eventsPerSecond: 10
+        }
+    },
+    global: {
+        headers: {
+            'x-application-name': 'lens-vault'
+        }
     }
 });
+
+// Helper to check if Supabase is properly configured
+export const isSupabaseConfigured = () => {
+    return Boolean(supabaseUrl && supabaseAnonKey);
+};

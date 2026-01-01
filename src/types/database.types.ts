@@ -4,6 +4,7 @@ export interface Database {
             users: {
                 Row: {
                     id: string;
+                    auth_id: string | null;
                     email: string;
                     name: string;
                     wallet_address: string | null;
@@ -14,6 +15,7 @@ export interface Database {
                 };
                 Insert: {
                     id?: string;
+                    auth_id?: string | null;
                     email: string;
                     name: string;
                     wallet_address?: string | null;
@@ -24,6 +26,7 @@ export interface Database {
                 };
                 Update: {
                     id?: string;
+                    auth_id?: string | null;
                     email?: string;
                     name?: string;
                     wallet_address?: string | null;
