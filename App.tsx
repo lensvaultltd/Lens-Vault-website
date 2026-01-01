@@ -3,10 +3,16 @@
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { ethers } from 'ethers';
 import { usePaystackPayment } from 'react-paystack';
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { useInView } from 'react-intersection-observer';
 import * as authService from './src/services/authService';
 import * as dbService from './src/services/databaseService';
 import { SocialLogin } from './src/components/SocialLogin';
 import AnimatedBackground from './src/components/AnimatedBackground';
+import PremiumButton from './src/components/PremiumButton';
+import FloatingCard from './src/components/FloatingCard';
+import AnimatedText from './src/components/AnimatedText';
+import { fadeInUp, staggerContainer, staggerItem, hoverLift } from './src/lib/animations';
 import logoImg from './src/assets/logo.png';
 import orivonImg from './src/assets/orivon.png';
 import savwomenImg from './src/assets/savwomen.jpg';
@@ -304,12 +310,23 @@ const Footer: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavigate }
 
 
 // --- UI Components ---
-const AnimatedSection: React.FC<{ children: React.ReactNode, className?: string }> = ({ children, className }) => {
-    const [ref, isVisible] = useAnimateOnScroll();
+const AnimatedSection: React.FC<{ children: React.ReactNode, className?: string, delay?: number }> = ({ children, className, delay = 0 }) => {
+    const [ref, inView] = useInView({
+        threshold: 0.1,
+        triggerOnce: true,
+    });
+
     return (
-        <div ref={ref} className={`transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'} ${className}`}>
+        <motion.div
+            ref={ref}
+            initial="hidden"
+            animate={inView ? 'visible' : 'hidden'}
+            variants={fadeInUp}
+            transition={{ delay }}
+            className={className}
+        >
             {children}
-        </div>
+        </motion.div>
     );
 };
 
@@ -320,27 +337,74 @@ interface ServiceCardProps {
     onNavigate: (page: string) => void;
 }
 
-const ServiceCard: React.FC<ServiceCardProps> = ({ icon, title, description, onNavigate }) => (
-    <div className="glass-card p-6 md:p-8 h-full flex flex-col items-start text-left hover:transform hover:-translate-y-2 transition-all duration-300 group">
-        <div className="p-4 bg-forest-800 text-forest-accent rounded-full mb-6 shadow-inner group-hover:bg-forest-accent group-hover:text-forest-900 transition-colors">
-            {icon}
-        </div>
-        <h3 className="text-2xl font-bold mb-3 text-white">{title}</h3>
-        <p className="text-forest-200 flex-grow mb-6 leading-relaxed">{description}</p>
-        <button onClick={() => onNavigate('services')} className="mt-auto font-bold text-forest-accent hover:text-white transition-colors flex items-center gap-2">
-            Learn More <span className="text-xl">&rarr;</span>
-        </button>
-    </div>
-);
+const ServiceCard: React.FC<ServiceCardProps> = ({ icon, title, description, onNavigate }) => {
+    const cardRef = React.useRef<HTMLDivElement>(null);
+    const [isHovered, setIsHovered] = useState(false);
+    const mouseX = useMotionValue(0);
+    const mouseY = useMotionValue(0);
+
+    const rotateX = useSpring(useTransform(mouseY, [-0.5, 0.5], [8, -8]), { stiffness: 200, damping: 20 });
+    const rotateY = useSpring(useTransform(mouseX, [-0.5, 0.5], [-8, 8]), { stiffness: 200, damping: 20 });
+
+    const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (!cardRef.current) return;
+        const rect = cardRef.current.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        mouseX.set((e.clientX - centerX) / (rect.width / 2));
+        mouseY.set((e.clientY - centerY) / (rect.height / 2));
+    };
+
+    return (
+        <motion.div
+            ref={cardRef}
+            className="glass-card p-6 md:p-8 h-full flex flex-col items-start text-left group"
+            style={{ rotateX, rotateY, transformStyle: 'preserve-3d' }}
+            onMouseMove={handleMouseMove}
+            onMouseEnter={() => setIsHovered(true)}
+            onMouseLeave={() => {
+                setIsHovered(false);
+                mouseX.set(0);
+                mouseY.set(0);
+            }}
+            whileHover={{ y: -8, transition: { duration: 0.3 } }}
+        >
+            <motion.div
+                className="p-4 bg-forest-800 text-forest-accent rounded-full mb-6 shadow-inner group-hover:bg-forest-accent group-hover:text-forest-900 transition-colors"
+                animate={{ scale: isHovered ? 1.1 : 1 }}
+                transition={{ duration: 0.3 }}
+            >
+                {icon}
+            </motion.div>
+            <h3 className="text-2xl font-bold mb-3 text-white">{title}</h3>
+            <p className="text-forest-200 flex-grow mb-6 leading-relaxed">{description}</p>
+            <motion.button
+                onClick={() => onNavigate('services')}
+                className="mt-auto font-bold text-forest-accent hover:text-white transition-colors flex items-center gap-2"
+                whileHover={{ x: 5 }}
+            >
+                Learn More <span className="text-xl">&rarr;</span>
+            </motion.button>
+        </motion.div>
+    );
+};
 
 
 const FeaturePill: React.FC<{ icon: React.ReactNode; text: string }> = ({ icon, text }) => (
-    <div className="flex items-center gap-3 glass-card p-4 shadow-md border border-forest-700/50">
-        <div className="p-2 bg-forest-800 text-forest-accent rounded-full">
+    <motion.div
+        className="flex items-center gap-3 glass-card p-4 shadow-md border border-forest-700/50"
+        whileHover={{ scale: 1.05, boxShadow: '0 0 20px rgba(6, 182, 212, 0.3)' }}
+        transition={{ duration: 0.2 }}
+    >
+        <motion.div
+            className="p-2 bg-forest-800 text-forest-accent rounded-full"
+            whileHover={{ rotate: 360 }}
+            transition={{ duration: 0.5 }}
+        >
             {icon}
-        </div>
+        </motion.div>
         <span className="font-semibold text-white">{text}</span>
-    </div>
+    </motion.div>
 );
 
 
@@ -373,59 +437,122 @@ const HeroSection: React.FC<{ onNavigate: (page: string) => void }> = ({ onNavig
 
     return (
         <section className="relative min-h-screen flex items-center pt-20 pb-20 overflow-hidden">
-            {/* Background Glow Effects */}
-            <div className="absolute top-0 left-1/4 w-96 h-96 bg-forest-accent/10 rounded-full blur-3xl -z-10"></div>
-            <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-forest-accent/5 rounded-full blur-3xl -z-10"></div>
+            {/* Animated Background Orbs */}
+            <motion.div
+                className="absolute top-0 left-1/4 w-96 h-96 bg-gradient-to-r from-cyan-500/20 to-blue-500/10 rounded-full blur-3xl -z-10"
+                animate={{
+                    y: [0, -30, 0],
+                    x: [0, 20, 0],
+                    scale: [1, 1.1, 1]
+                }}
+                transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+            />
+            <motion.div
+                className="absolute bottom-0 right-1/4 w-96 h-96 bg-gradient-to-r from-purple-500/15 to-fuchsia-500/10 rounded-full blur-3xl -z-10"
+                animate={{
+                    y: [0, 30, 0],
+                    x: [0, -20, 0],
+                    scale: [1, 1.15, 1]
+                }}
+                transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+            />
 
             <div className="container mx-auto px-6">
                 {user ? (
                     // Logged In View: Centered Hero Content
-                    <div className="flex flex-col items-center text-center max-w-4xl mx-auto relative z-10 animate-fade-in-up">
-                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-forest-800/50 border border-forest-700 mb-8">
-                            <ShieldCheck className="w-5 h-5 text-green-400" />
+                    <motion.div
+                        className="flex flex-col items-center text-center max-w-4xl mx-auto relative z-10"
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.8 }}
+                    >
+                        <motion.div
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-forest-800/50 border border-forest-700 mb-8 backdrop-blur-xl"
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.2, duration: 0.5 }}
+                        >
+                            <motion.div
+                                animate={{ rotate: [0, 360] }}
+                                transition={{ duration: 20, repeat: Infinity, ease: 'linear' }}
+                            >
+                                <ShieldCheck className="w-5 h-5 text-green-400" />
+                            </motion.div>
                             <span className="text-forest-200 text-sm font-medium">Protected by Lens Vault</span>
-                        </div>
-                        <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight tracking-tight mb-8">
-                            Lens Vault <br />
-                            <span className="text-transparent bg-clip-text bg-gradient-to-r from-forest-accent to-white">Built for your digital peace of mind</span>
-                        </h1>
-                        <p className="text-xl text-forest-300 max-w-2xl leading-relaxed font-light mb-10">
+                        </motion.div>
+                        <motion.h1
+                            className="text-5xl md:text-7xl font-bold text-white leading-tight tracking-tight mb-8"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3, duration: 0.6 }}
+                        >
+                            <AnimatedText delay={0.4}>Lens Vault</AnimatedText>
+                            <br />
+                            <span className="gradient-text animate-gradient-x bg-[length:200%_auto]">
+                                <AnimatedText delay={0.6} gradient>Built for your digital peace of mind</AnimatedText>
+                            </span>
+                        </motion.h1>
+                        <motion.p
+                            className="text-xl text-forest-300 max-w-2xl leading-relaxed font-light mb-10"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: 0.7, duration: 0.6 }}
+                        >
                             Secure your digital presence with advanced cybersecurity solutions. Proof-backed protection for individuals and businesses.
-                        </p>
-                        <div className="flex flex-col sm:flex-row gap-4">
-                            <button
-                                onClick={() => onNavigate('services')}
-                                className="px-10 py-4 rounded-full bg-forest-accent text-forest-900 font-bold hover:bg-white transition-all duration-300 shadow-[0_0_20px_rgba(14,165,233,0.4)] hover:shadow-[0_0_30px_rgba(14,165,233,0.6)]"
-                            >
+                        </motion.p>
+                        <motion.div
+                            className="flex flex-col sm:flex-row gap-4"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.9, duration: 0.6 }}
+                        >
+                            <PremiumButton onClick={() => onNavigate('services')} variant="primary" size="lg">
                                 Explore Services
-                            </button>
-                            <button
-                                onClick={() => onNavigate('profile')}
-                                className="px-10 py-4 rounded-full border border-forest-600 text-white font-medium hover:bg-forest-800 transition-all duration-300"
-                            >
+                            </PremiumButton>
+                            <PremiumButton onClick={() => onNavigate('profile')} variant="secondary" size="lg">
                                 Go to Profile
-                            </button>
-                        </div>
-                    </div>
+                            </PremiumButton>
+                        </motion.div>
+                    </motion.div>
                 ) : (
                     // Logged Out View: Split Layout with Login Form
                     <div className="grid lg:grid-cols-2 gap-12 items-center relative z-10">
                         {/* Left Content */}
-                        <div className="text-left space-y-8">
-                            <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight tracking-tight">
-                                Lens Vault <br />
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-forest-accent to-white">Built for your digital peace of mind</span>
-                            </h1>
-                            <p className="text-lg text-forest-300 max-w-xl leading-relaxed font-light">
-                                Secure your digital presence with advanced cybersecurity solutions. Proof-backed protection for individuals and businesses.
-                            </p>
-                            <button
-                                onClick={() => onNavigate('services')}
-                                className="mt-8 px-10 py-4 rounded-full border border-white/30 text-white font-medium hover:bg-white hover:text-forest-900 transition-all duration-300 hover:shadow-[0_0_20px_rgba(255,255,255,0.3)]"
+                        <motion.div
+                            className="text-left space-y-8"
+                            initial={{ opacity: 0, x: -50 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.8 }}
+                        >
+                            <motion.h1
+                                className="text-5xl md:text-7xl font-bold text-white leading-tight tracking-tight"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.2, duration: 0.6 }}
                             >
-                                Get Started
-                            </button>
-                        </div>
+                                Lens Vault <br />
+                                <span className="gradient-text animate-gradient-x bg-[length:200%_auto]">
+                                    Built for your digital peace of mind
+                                </span>
+                            </motion.h1>
+                            <motion.p
+                                className="text-lg text-forest-300 max-w-xl leading-relaxed font-light"
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ delay: 0.4, duration: 0.6 }}
+                            >
+                                Secure your digital presence with advanced cybersecurity solutions. Proof-backed protection for individuals and businesses.
+                            </motion.p>
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.6, duration: 0.6 }}
+                            >
+                                <PremiumButton onClick={() => onNavigate('services')} variant="ghost" size="lg">
+                                    Get Started
+                                </PremiumButton>
+                            </motion.div>
+                        </motion.div>
 
                         {/* Right Login Card */}
                         <div className="flex justify-center lg:justify-end">
@@ -637,18 +764,63 @@ const CallToActionSection: React.FC<{ onNavigate: (page: string) => void }> = ({
     <section className="py-16 md:py-24">
         <div className="container mx-auto px-4 md:px-6">
             <AnimatedSection>
-                <div className="glass-card p-8 md:p-16 text-center border border-forest-700/50 relative overflow-hidden">
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-forest-accent to-transparent opacity-50"></div>
-                    <h2 className="text-3xl md:text-5xl font-bold text-white">Ready to Secure Your Digital World?</h2>
-                    <p className="mt-4 max-w-xl mx-auto text-forest-200 text-lg">
+                <motion.div
+                    className="glass-card p-8 md:p-16 text-center border border-forest-700/50 relative overflow-hidden"
+                    whileHover={{ scale: 1.02 }}
+                    transition={{ duration: 0.3 }}
+                >
+                    {/* Animated gradient border */}
+                    <motion.div
+                        className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-forest-accent to-transparent"
+                        animate={{
+                            backgroundPosition: ['0% 50%', '100% 50%', '0% 50%'],
+                            opacity: [0.3, 0.7, 0.3]
+                        }}
+                        transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                        style={{ backgroundSize: '200% 100%' }}
+                    />
+                    <motion.h2
+                        className="text-3xl md:text-5xl font-bold text-white mb-4"
+                        initial={{ opacity: 0, y: 20 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.6 }}
+                    >
+                        Ready to Secure Your Digital World?
+                    </motion.h2>
+                    <motion.p
+                        className="mt-4 max-w-xl mx-auto text-forest-200 text-lg"
+                        initial={{ opacity: 0 }}
+                        whileInView={{ opacity: 1 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.2, duration: 0.6 }}
+                    >
                         Don't wait for a threat to become a reality. Take the first step towards digital peace of mind today.
-                    </p>
-                    <div className="mt-8">
-                        <button onClick={() => onNavigate('contact')} className="font-bold px-8 py-4 rounded-full text-forest-900 bg-forest-accent hover:bg-white transition-all duration-300 transform hover:scale-105 shadow-lg shadow-forest-accent/20">
-                            Get a Free Consultation
-                        </button>
-                    </div>
-                </div>
+                    </motion.p>
+                    <motion.div
+                        className="mt-8"
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.4, duration: 0.6 }}
+                    >
+                        <motion.div
+                            animate={{
+                                boxShadow: [
+                                    '0 0 20px rgba(6, 182, 212, 0.3)',
+                                    '0 0 40px rgba(6, 182, 212, 0.6), 0 0 60px rgba(6, 182, 212, 0.3)',
+                                    '0 0 20px rgba(6, 182, 212, 0.3)'
+                                ]
+                            }}
+                            transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+                            className="inline-block rounded-full"
+                        >
+                            <PremiumButton onClick={() => onNavigate('contact')} variant="primary" size="lg">
+                                Get a Free Consultation
+                            </PremiumButton>
+                        </motion.div>
+                    </motion.div>
+                </motion.div>
             </AnimatedSection>
         </div>
     </section>
